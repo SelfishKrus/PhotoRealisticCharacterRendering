@@ -12,12 +12,11 @@ Shader "PostProcess/SeparableSSS"
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
-
-    #include "SeparableSSS.hlsl"
 
     struct Attributes
     {
@@ -49,6 +48,8 @@ Shader "PostProcess/SeparableSSS"
     // List of properties to control your post process effect
     float _Intensity;
     TEXTURE2D_X(_MainTex);
+
+    #include "SeparableSSS.hlsl"
 
     float4 CustomPostProcess(Varyings input) : SV_Target
     {
