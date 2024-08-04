@@ -2,9 +2,17 @@ Shader "FullScreen/SeparableSSS"
 {   
     Properties
     {   
+        [Header(Stencil Test)]
+        [Space(10)]
         _StencilMask("Stencil Mask", Int) = 0
         [Enum(UnityEngine.Rendering.CompareFunction)] _Compare("Compare", Int) = 0
         [Enum(UnityEngine.Rendering.StencilOp)] _Pass("Pass", Int) = 0
+        [Space(30)]
+
+        [Header(Separable SSS)]
+        [Space(10)]
+        _SSSWidth ("SSS Width", Float) = 1.0
+        _SSSIntensity ("SSS Intensity", Float) = 1.0
 
         _Test ("Test", Vector) = (1,1,1,1)
     }
@@ -43,7 +51,12 @@ Shader "FullScreen/SeparableSSS"
 
     float4 _Test;
 
-    float4 FullScreenPass(Varyings varyings) : SV_Target
+    float _SSSWidth;
+    float _SSSIntensity;
+
+    #include "SeparableSSS.hlsl"
+
+    float4 SSSBlurPassX(Varyings varyings) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
         float depth = LoadCameraDepth(varyings.positionCS.xy);
@@ -55,12 +68,28 @@ Shader "FullScreen/SeparableSSS"
         if (_CustomPassInjectionPoint != CUSTOMPASSINJECTIONPOINT_BEFORE_RENDERING)
             color = float4(CustomPassLoadCameraColor(varyings.positionCS.xy, 0), 1);
 
-        // Add your custom pass code here
-        color = color.r * _Test.x;
+        // SSS Blur X
+        float2 dir = float2(1,0);
+        color.rgb = SSSBlur(posInput.positionNDC, _SSSWidth, _SSSIntensity, dir);
+        return float4(color.rgb, color.a);
+    }
 
-        // Fade value allow you to increase the strength of the effect while the camera gets closer to the custom pass volume
-        float f = 1 - abs(_FadeValue * 2 - 1);
-        return float4(color.rgb + f, color.a);
+    float4 SSSBlurPassY(Varyings varyings) : SV_Target
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+        float depth = LoadCameraDepth(varyings.positionCS.xy);
+        PositionInputs posInput = GetPositionInput(varyings.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        float3 viewDirection = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+        float4 color = float4(0.0, 0.0, 0.0, 0.0);
+
+        // Load the camera color buffer at the mip 0 if we're not at the before rendering injection point
+        if (_CustomPassInjectionPoint != CUSTOMPASSINJECTIONPOINT_BEFORE_RENDERING)
+            color = float4(CustomPassLoadCameraColor(varyings.positionCS.xy, 0), 1);
+
+        // SSS Blur Y
+        float2 dir = float2(0,1);
+        color.rgb = SSSBlur(posInput.positionNDC, _SSSWidth, _SSSIntensity, dir);
+        return float4(color.rgb, color.a);
     }
 
     ENDHLSL
@@ -71,13 +100,14 @@ Shader "FullScreen/SeparableSSS"
         Stencil
         {
             Ref [_StencilMask]
+            WriteMask [_StencilMask]
             Comp [_Compare]
             Pass [_Pass]
         }
 
         Pass
         {
-            Name "SSS Blur Pass"
+            Name "SSS Blur Pass X"
 
             ZWrite Off
             ZTest Always
@@ -85,7 +115,21 @@ Shader "FullScreen/SeparableSSS"
             Cull Off
 
             HLSLPROGRAM
-                #pragma fragment FullScreenPass
+                #pragma fragment SSSBlurPassX
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "SSS Blur Pass Y"
+
+            ZWrite Off
+            ZTest Always
+            Blend SrcAlpha OneMinusSrcAlpha
+            Cull Off
+
+            HLSLPROGRAM
+                #pragma fragment SSSBlurPassY
             ENDHLSL
         }
     }

@@ -6,6 +6,8 @@ Shader "PRC/Skin"
         _T_Normal ("Normal Map", 2D) = "bump" {}
         _T_Rmo ("RMO", 2D) = "white" {}
 
+        [Header(Stencil Test)]
+        [Space(10)]
         _StencilMask("Stencil Mask", Int) = 0
         [Enum(UnityEngine.Rendering.CompareFunction)] _Compare("Compare", Int) = 0
         [Enum(UnityEngine.Rendering.StencilOp)] _Pass("Pass", Int) = 0
@@ -92,7 +94,7 @@ Shader "PRC/Skin"
                 float3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_T_Normal, SamplerState_Linear_Repeat, IN.uv));
                 float3 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, IN.uv).rgb;
 
-                // TBN 
+                // NormalTS to NormalWS
                 float3 bitangentWS = cross(IN.normalWS, IN.tangentWS.xyz) * IN.tangentWS.w;
                 float3x3 m_worldToTangent = float3x3(IN.tangentWS.xyz, bitangentWS.xyz, IN.normalWS.xyz);
                 float3x3 m_tangentToWorld = transpose(m_worldToTangent);
@@ -106,9 +108,11 @@ Shader "PRC/Skin"
                 lightDir.z = lightData.right;
                 float3 lightDirection = normalize(-lightDir.xyz);
 
-                float NoL01 = dot(normalWS, lightDirection);
+                float NoL01 = dot(normalWS, lightDirection) * 0.5f + 0.5f;
+
+                float3 diffuse = NoL01 * baseColor;
                 
-                float3 col = NoL01;
+                float3 col = diffuse;
                 return half4(col, 1);
             }
             ENDHLSL
