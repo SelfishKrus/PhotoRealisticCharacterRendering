@@ -40,7 +40,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseCol:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 6925c1464e9374e488741a43c0af847c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
@@ -92,7 +92,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 810212f8ae08e1749ab339fd900ae180, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
@@ -108,7 +108,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Roughness:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 88749a54705f7204d92fea7faed84a62, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecularColorMap:
