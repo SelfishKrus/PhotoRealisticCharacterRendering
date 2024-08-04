@@ -5,15 +5,17 @@ Shader "PRC/Skin"
         _T_BaseColor ("Texture", 2D) = "white" {}
         _T_Normal ("Normal Map", 2D) = "bump" {}
         _T_Rmo ("RMO", 2D) = "white" {}
+
+        _StencilMask("Stencil Mask", Int) = 0
+        [Enum(UnityEngine.Rendering.CompareFunction)] _Compare("Compare", Int) = 0
+        [Enum(UnityEngine.Rendering.StencilOp)] _Pass("Pass", Int) = 0
     }
     SubShader
     {
         Tags 
         {
             "RenderPipeline"="HDRenderPipeline"
-            "RenderType"="HDUnlitShader"
-            "Queue"="Geometry+0"
-            "DisableBatching"="False"
+            "Queue"="Geometry"
         }
         LOD 100
 
@@ -22,6 +24,13 @@ Shader "PRC/Skin"
             Tags
             {
                 "LightMode" = "ForwardOnly"
+            }
+
+            Stencil
+            {
+                Ref [_StencilMask]
+                Comp [_Compare]
+                Pass [_Pass]
             }
 
             ZWrite On
