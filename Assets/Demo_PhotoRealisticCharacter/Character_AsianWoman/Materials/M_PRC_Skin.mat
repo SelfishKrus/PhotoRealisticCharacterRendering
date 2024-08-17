@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_PRC_Skin
-  m_Shader: {fileID: 4800000, guid: a635c116609762e4b901b9469b0e0075, type: 3}
+  m_Shader: {fileID: 4800000, guid: 60e4c25ab60f6df4c844a551ab2aa0f0, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -31,6 +31,18 @@ Material:
         m_Texture: {fileID: 2800000, guid: aa33dba347967b4418b05fc070aabca1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _T_Curvature:
+        m_Texture: {fileID: 2800000, guid: 5f09667cf0398c149a9aca7ed31d89f2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_LUT_Diffuse:
+        m_Texture: {fileID: 2800000, guid: ecc2599d65713874da421e29d23500e9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_LUT_Shadow:
+        m_Texture: {fileID: 2800000, guid: 179b3855b2ecfd14a80240a335548f9d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _T_Normal:
         m_Texture: {fileID: 2800000, guid: f4c14994a4153624cbd51e898280f04c, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -42,9 +54,13 @@ Material:
     m_Ints: []
     m_Floats:
     - _Compare: 8
+    - _LowNormalLod: 0.89
     - _Pass: 2
     - _StencilMask: 192
     - _StencilWriteMask: 192
-    m_Colors: []
+    - _Wrap: 1
+    m_Colors:
+    - _CurvatureScaleBias: {r: 1.11, g: 0, b: 0, a: 0}
+    - _Test: {r: 1, g: 5.61, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
