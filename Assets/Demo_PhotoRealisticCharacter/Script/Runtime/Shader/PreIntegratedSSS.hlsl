@@ -23,7 +23,8 @@ float3 EvaluateSSSDirectLight(
         float curvature,
         Texture2D texDiffuseLUT,
         SamplerState ss,
-        float wrap)
+        float wrapRGB,
+        float wrapR)
 {
     float NoLBlurredUnclamped = dot(normalLow, lightDir);
     
@@ -33,7 +34,9 @@ float3 EvaluateSSSDirectLight(
     float3 normalB = normalize(lerp(normalHigh, normalLow, normalSmoothFactor));
     float NoLGUnclamped = dot(normalG, lightDir);
     float NoLBUnclamped = dot(normalB, lightDir);
-    float3 NoLRGB = (float3(NoLBlurredUnclamped, NoLGUnclamped, NoLBUnclamped) + wrap) / (1.0 + wrap);
+    float3 NoLRGB = float3(NoLBlurredUnclamped, NoLGUnclamped, NoLBUnclamped);
+    NoLRGB = (NoLRGB + wrapRGB) / (1.0 + wrapRGB);
+    NoLRGB.r = (NoLRGB.r + wrapR) / (1.0 + wrapR);
     
     return SkinSSS(curvature, NoLRGB, texDiffuseLUT, ss);
 }
