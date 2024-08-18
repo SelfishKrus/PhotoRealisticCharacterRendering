@@ -104,7 +104,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Metallic:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: c35e39404171f0a48b0e5fbb0c96bc1b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal:
@@ -266,7 +266,7 @@ Material:
     - _RefractionModel: 0
     - _RenderQueueType: 1
     - _RequireSplitLighting: 0
-    - _RoughnessScale: 0.5
+    - _RoughnessScale: 1
     - _Smoothness: 0.14142135
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0

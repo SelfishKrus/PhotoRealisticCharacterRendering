@@ -659,7 +659,6 @@ MonoBehaviour:
   m_Script: {fileID: 1816117071}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Entries: []
 --- !u!4 &399669003
 Transform:
   m_ObjectHideFlags: 19
@@ -1662,7 +1661,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1274121527
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2133,13 +2132,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1346248612}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0.010070561, y: -0.42744842, z: -0.0047619287, w: 0.9039711}
   m_LocalPosition: {x: -0.09207581, y: 1.3862312, z: 0.07531362}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 524229423}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0.81, y: -50.622, z: -0.987}
 --- !u!114 &1346248614
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2532,7 +2531,7 @@ Light:
   serializedVersion: 11
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 130000
+  m_Intensity: 5
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -2576,7 +2575,7 @@ Light:
   m_AreaSize: {x: 0.5, y: 0.5}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
-  m_UseColorTemperature: 1
+  m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 9.29e-43, y: NaN, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
@@ -2594,13 +2593,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1561896938}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.053241048, y: 0.7054115, z: -0.43362013, w: -0.55815196}
-  m_LocalPosition: {x: -0.1624, y: 1.4247, z: 0.051}
+  m_LocalRotation: {x: -0.5475954, y: 0.5594874, z: 0.33181387, w: -0.5263201}
+  m_LocalPosition: {x: -0.1624, y: 1.425, z: 0.051}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 524229423}
-  m_LocalEulerAnglesHint: {x: 33.527, y: 3869.94, z: -317.874}
+  m_LocalEulerAnglesHint: {x: 11.837, y: 2416.663, z: 640.602}
 --- !u!115 &1816117071
 MonoScript:
   m_ObjectHideFlags: 0

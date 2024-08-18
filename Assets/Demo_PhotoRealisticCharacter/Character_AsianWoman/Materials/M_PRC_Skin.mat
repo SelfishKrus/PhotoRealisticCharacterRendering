@@ -54,16 +54,18 @@ Material:
     m_Ints: []
     m_Floats:
     - _Compare: 8
-    - _LowNormalLod: 10
+    - _LowNormalLod: 4.59
+    - _NormalScale: 0.71
     - _Pass: 2
+    - _RoughnessScale: 1
     - _StencilMask: 192
     - _StencilWriteMask: 192
     - _Wrap: 0.54
-    - _WrapR: 0.148
-    - _WrapRGB: 0.563
+    - _WrapR: 0.16
+    - _WrapRGB: 0.415
     m_Colors:
-    - _CurvatureScaleBias: {r: 0.5, g: 0.5, b: 0, a: 0}
-    - _Test: {r: 0.41, g: 0, b: 2.12, a: 0.95}
+    - _CurvatureScaleBias: {r: 1, g: 0.4, b: 0, a: 0}
+    - _Test: {r: 77.25, g: 0, b: 2.12, a: 0.95}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
