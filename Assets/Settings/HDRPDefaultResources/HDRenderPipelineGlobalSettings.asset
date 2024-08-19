@@ -249,7 +249,7 @@ MonoBehaviour:
         m_Version: 0
         m_Camera:
           bitDatas:
-            data1: 72198260625768269
+            data1: 72198256330800973
             data2: 13799031439032811544
           lodBias: 1
           lodBiasMode: 0
@@ -338,7 +338,7 @@ MonoBehaviour:
       type: {class: DiffusionProfileDefaultSettings, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
         m_Version: 0
-        m_AutoRegisterDiffusionProfiles: 0
+        m_AutoRegisterDiffusionProfiles: 1
     - rid: 5861062824032993289
       type: {class: CustomPostProcessOrdersSettings, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:
@@ -636,7 +636,7 @@ MonoBehaviour:
       type: {class: ShaderStrippingSetting, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
       data:
         m_Version: 0
-        m_ExportShaderVariants: 1
+        m_ExportShaderVariants: 0
         m_ShaderVariantLogLevel: 0
         m_StripRuntimeDebugShaders: 0
     - rid: 5861062824032993304

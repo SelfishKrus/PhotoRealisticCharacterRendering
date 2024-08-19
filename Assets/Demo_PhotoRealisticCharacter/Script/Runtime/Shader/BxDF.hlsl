@@ -27,6 +27,8 @@
 		return (n+2) / (2*PI) * pow( NoH, n );		// 1 mad, 1 exp, 1 mul, 1 log
 	}
 
+	
+
 	// [Beckmann 1963, "The scattering of electromagnetic waves from rough surfaces"]
 	float NDF_Beckmann( float a2, float NoH )
 	{

@@ -16,7 +16,6 @@ MonoBehaviour:
   - {fileID: 3594668726423360909}
   - {fileID: 283297181255076729}
   - {fileID: 8876171008454457883}
-  - {fileID: 3502342702374180889}
 --- !u!114 &283297181255076729
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -160,22 +159,6 @@ MonoBehaviour:
   planetCenterPosition:
     m_OverrideState: 0
     m_Value: {x: 0, y: -6378100, z: 0}
---- !u!114 &3502342702374180889
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cbd561f92257554c8a97719c48f9d82, type: 3}
-  m_Name: GrayScale
-  m_EditorClassIdentifier: 
-  active: 1
-  intensity:
-    m_OverrideState: 1
-    m_Value: 1
 --- !u!114 &3594668726423360909
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -191,13 +174,13 @@ MonoBehaviour:
   active: 1
   skyType:
     m_OverrideState: 1
-    m_Value: 4
+    m_Value: 0
   cloudType:
     m_OverrideState: 1
     m_Value: 0
   skyAmbientMode:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   planetRadius:
     m_OverrideState: 1
     m_Value: 6288
