@@ -56,18 +56,18 @@ Material:
     - _Compare: 8
     - _Glossiness: 0.2
     - _LowNormalLod: 4.28
-    - _NormalScale: 0.6
+    - _NormalScale: 1
     - _Pass: 2
     - _RoughnessScale: 1
-    - _SpecularReflectance: 0.071
+    - _SpecularReflectance: 0.028
     - _StencilMask: 192
     - _StencilWriteMask: 192
     - _Wrap: 0.54
-    - _WrapR: 0.16
-    - _WrapRGB: 0.415
+    - _WrapR: 0.326
+    - _WrapRGB: 0
     m_Colors:
     - _CurvatureScaleBias: {r: 1, g: 0.4, b: 0, a: 0}
-    - _Test: {r: 0.16, g: 0.09, b: 2.12, a: 0.95}
+    - _Test: {r: 0.57, g: 0.09, b: 2.12, a: 0.95}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

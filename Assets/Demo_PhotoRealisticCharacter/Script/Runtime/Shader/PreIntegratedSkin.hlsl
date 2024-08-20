@@ -25,6 +25,7 @@ float3 EvaluateSSSDirectLight(
         float3 normalLow,
         float3 baseColor,
         float3 lightDir,
+        float3 lightColor,
         float curvature,
         Texture2D texDiffuseLUT,
         SamplerState ss,
@@ -43,7 +44,7 @@ float3 EvaluateSSSDirectLight(
     NoLRGB = (NoLRGB + wrapRGB) / (1.0 + wrapRGB);
     NoLRGB.r = (NoLRGB.r + wrapR) / (1.0 + wrapR);
     
-    return SkinSSS(curvature, NoLRGB, texDiffuseLUT, ss) * baseColor;
+    return SkinSSS(curvature, NoLRGB, texDiffuseLUT, ss) * baseColor * lightColor;
 }
 
 float3 EvaluateSpecularDirectLight(
@@ -55,8 +56,7 @@ float3 EvaluateSpecularDirectLight(
         float3 baseColor,
         float roughness,
         float gloss,
-        float metallic,
-        float specReflectance)
+        float metallic)
 {
     float a = roughness * roughness;
     float a2 = a * a;
@@ -80,7 +80,7 @@ float3 EvaluateSpecularDirectLight(
     float visibilityFn1 = 0.25 / (lerp(schlickSmithFactor1, 1, NoL) * lerp(schlickSmithFactor1, 1, NoV));
     float ndfResult = lerp(ndf0 * visibilityFn0, ndf1 * visibilityFn1, specLobeBlend);
 
-    float fresnel = lerp(specReflectance, 1.0, pow(1.0 - LoH, 5.0));
+    float fresnel = lerp(F0, 1.0, pow(1.0 - LoH, 5.0));
     float specResult = ndfResult * fresnel;
     
     return specResult * NoL * lightColor;

@@ -8,7 +8,6 @@ Shader "PRC/Skin_PISSS"
         _T_Rmo ("RMO", 2D) = "white" {} 
         _RoughnessScale ("Roughness Scale", Range(0,2)) = 1
         _Glossiness ("Glossiness", Range(0, 10)) = 0.5
-        _SpecularReflectance ("Specular Reflectance", Range(0, 1)) = 1
 
         _LowNormalLod ("Low Normal LOD", Range(0,10)) = 5
         _WrapRGB ("Wrap", Range(0, 1)) = 1
@@ -84,7 +83,6 @@ Shader "PRC/Skin_PISSS"
             TEXTURE2D(_T_LUT_Diffuse);
             TEXTURE2D(_T_LUT_Shadow);
 
-            float _SpecularReflectance;
             float _Glossiness;
             float _NormalScale;
             float _RoughnessScale;
@@ -134,8 +132,8 @@ Shader "PRC/Skin_PISSS"
                 float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
 
                 // Pre-integrated SSS
-                float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, _WrapRGB, _WrapR);
-                float3 specular = EvaluateSpecularDirectLight(normalWS_high, normalWS_geom, camDir, lightDir, lightData.color, baseColor, roughness, _Glossiness, rmo.g, _SpecularReflectance);
+                float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, _WrapRGB, _WrapR);
+                float3 specular = EvaluateSpecularDirectLight(normalWS_high, normalWS_geom, camDir, lightDir, lightData.color, baseColor, roughness, _Glossiness, rmo.g);
                 
                 float3 col = diffuse + specular;
                 return half4(col, 1);
