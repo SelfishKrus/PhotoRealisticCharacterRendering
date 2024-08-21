@@ -54,36 +54,34 @@ float3 EvaluateSpecularDirectLight(
         float3 l,
         float3 lightColor,
         float3 baseColor,
-        float roughness,
         float gloss,
         float metallic)
 {
-    float a = roughness * roughness;
-    float a2 = a * a;
     float3 F0 = lerp(F0_SKIN, baseColor, metallic);
-    float specPower = exp2(gloss * 13.0);
+    float specPower = exp2(gloss * 13); // remap to be more linear
 
     float h = normalize(v + l);
     float NoH = saturate(dot(n_high, h));
     float NoL = saturate(dot(n_high, l));
     float NoV = saturate(dot(n_high, v));
     float LoH = dot(l, h);
-    
-    float specLobeBlend = _Test.x;
-    float specPower0 = specPower;
-    float specPower1 = specPower * specPower;
-    float ndf0 = pow(NoH, specPower0) * (specPower0 + 2.0) * 0.5;
-    float schlickSmithFactor0 = rsqrt(specPower0 * (3.14159 * 0.25) + (3.14159 * 0.5));
-    float visibilityFn0 = 0.25 / (lerp(schlickSmithFactor0, 1, NoL) * lerp(schlickSmithFactor0, 1, NoV));
-    float ndf1 = pow(NoH, specPower1) * (specPower1 + 2.0) * 0.5;
-    float schlickSmithFactor1 = rsqrt(specPower1 * (3.14159 * 0.25) + (3.14159 * 0.5));
-    float visibilityFn1 = 0.25 / (lerp(schlickSmithFactor1, 1, NoL) * lerp(schlickSmithFactor1, 1, NoV));
-    float ndfResult = lerp(ndf0 * visibilityFn0, ndf1 * visibilityFn1, specLobeBlend);
 
-    float fresnel = lerp(F0, 1.0, pow(1.0 - LoH, 5.0));
-    float specResult = ndfResult * fresnel;
+    // epidermis layer
+    float specPower0 = specPower;
+    float D0 = NDF_Blinn(specPower0, NoH);
+    float V0 = Vis_Schlick(specPower0, NoV, NoL);
+
+    // oil layer
+    float specPower1 = specPower * specPower;
+    float D1 = NDF_Blinn(specPower1, NoH);
+    float V1 = Vis_Schlick(specPower1, NoV, NoL);
+
+    float F = Fresnel_Schlick(F0, LoH);
     
-    return specResult * NoL * lightColor;
+    float3 brdf = lerp(D0*V0, D1*V1, 0.15) * F;
+    float3 irradiance = NoL * lightColor;
+    
+    return brdf * irradiance;
 }
 
 #endif 

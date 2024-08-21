@@ -6,8 +6,7 @@ Shader "PRC/Skin_PISSS"
         _T_Normal ("Normal Map", 2D) = "bump" {}
         _NormalScale ("Normal Scale", Range(0,5)) = 1
         _T_Rmo ("RMO", 2D) = "white" {} 
-        _RoughnessScale ("Roughness Scale", Range(0,2)) = 1
-        _Glossiness ("Glossiness", Range(0, 10)) = 0.5
+        _RoughnessScale ("Roughness Scale", Range(0, 1.5)) = 1
 
         _LowNormalLod ("Low Normal LOD", Range(0,10)) = 5
         _WrapRGB ("Wrap", Range(0, 1)) = 1
@@ -83,9 +82,8 @@ Shader "PRC/Skin_PISSS"
             TEXTURE2D(_T_LUT_Diffuse);
             TEXTURE2D(_T_LUT_Shadow);
 
-            float _Glossiness;
-            float _NormalScale;
             float _RoughnessScale;
+            float _NormalScale;
             float _WrapRGB;
             float _WrapR;
             float _LowNormalLod;
@@ -115,7 +113,6 @@ Shader "PRC/Skin_PISSS"
                 float3 normalTS_low = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, IN.uv, _LowNormalLod));
                 float3 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, IN.uv).rgb;
                 float roughness = lerp(0.001, 1.0, rmo.r * _RoughnessScale);
-                roughness = pow(roughness, _Test.y);
                 float curvature = SAMPLE_TEXTURE2D(_T_Curvature, SamplerState_Linear_Repeat, IN.uv).r * _CurvatureScaleBias.x + _CurvatureScaleBias.y;
 
                 // NormalTS to NormalWS
@@ -131,9 +128,9 @@ Shader "PRC/Skin_PISSS"
                 float3 lightDir = -normalize(lightData.forward);
                 float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
 
-                // Pre-integrated SSS
+                // lighting
                 float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, _WrapRGB, _WrapR);
-                float3 specular = EvaluateSpecularDirectLight(normalWS_high, normalWS_geom, camDir, lightDir, lightData.color, baseColor, roughness, _Glossiness, rmo.g);
+                float3 specular = EvaluateSpecularDirectLight(normalWS_high, normalWS_geom, camDir, lightDir, lightData.color, baseColor, 1-roughness, rmo.g);
                 
                 float3 col = diffuse + specular;
                 return half4(col, 1);
