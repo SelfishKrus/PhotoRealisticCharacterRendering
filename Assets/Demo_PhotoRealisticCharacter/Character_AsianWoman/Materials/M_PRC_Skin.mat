@@ -56,15 +56,15 @@ Material:
     - _Compare: 8
     - _Gloss: 0.645
     - _Glossiness: 0.625
-    - _LowNormalLod: 2.21
-    - _NormalScale: 1
+    - _LowNormalLod: 6.77
+    - _NormalScale: 0.65
     - _Pass: 2
     - _RoughnessScale: 1
     - _SpecularReflectance: 0.028
     - _StencilMask: 192
     - _StencilWriteMask: 192
     - _Wrap: 0.54
-    - _WrapR: 0.326
+    - _WrapR: 0.379
     - _WrapRGB: 0
     m_Colors:
     - _CurvatureScaleBias: {r: 1, g: 0.4, b: 0, a: 0}
