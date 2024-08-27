@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HDRP High Fidelity
   m_EditorClassIdentifier: 
   m_RenderPipelineSettings:
-    supportShadowMask: 0
+    supportShadowMask: 1
     supportSSR: 0
     supportSSRTransparent: 0
     supportSSAO: 1
@@ -130,9 +130,9 @@ MonoBehaviour:
         useDynamicViewportRescale: 0
       cachedPunctualLightShadowAtlas: 4096
       cachedAreaLightShadowAtlas: 4096
-      allowDirectionalMixedCachedShadows: 0
+      allowDirectionalMixedCachedShadows: 1
       shadowResolutionDirectional:
-        m_Values: 00020000000400000008000000100000
+        m_Values: 00020000001000000008000000100000
         m_SchemaId:
           m_Id: With4Levels
       shadowResolutionPunctual:

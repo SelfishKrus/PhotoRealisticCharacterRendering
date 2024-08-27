@@ -30,7 +30,8 @@ float3 EvaluateSSSDirectLight(
         Texture2D texDiffuseLUT,
         SamplerState ss,
         float wrapRGB,
-        float wrapR)
+        float wrapR,
+        float shadow)
 {
     float NoLBlurredUnclamped = dot(normalLow, lightDir);
     
@@ -43,6 +44,8 @@ float3 EvaluateSSSDirectLight(
     float3 NoLRGB = float3(NoLBlurredUnclamped, NoLGUnclamped, NoLBUnclamped);
     NoLRGB = (NoLRGB + wrapRGB) / (1.0 + wrapRGB);
     NoLRGB.r = (NoLRGB.r + wrapR) / (1.0 + wrapR);
+
+    NoLRGB *= shadow;
     
     return SkinSSS(curvature, NoLRGB, texDiffuseLUT, ss) * baseColor * lightColor;
 }

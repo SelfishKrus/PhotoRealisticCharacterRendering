@@ -41,16 +41,24 @@ Shader "PRC/Skin_PISSS"
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma multi_compile_fragment PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
+	        #pragma multi_compile_fragment DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
+            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 
-            #pragma multi_compile_fragment PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
-	        #pragma multi_compile_fragment DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
-            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
+            // for directional shadow
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl"
 
+            #define DIRECTIONAL_SHADOW_HIGH
 
             struct Attributes
             {
@@ -128,11 +136,18 @@ Shader "PRC/Skin_PISSS"
                 float3 lightDir = -normalize(lightData.forward);
                 float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
 
+                float2 posSS = IN.pos / _ScreenParams.xy;
+                HDShadowContext shadowContext = InitShadowContext();
+                float shadow = GetDirectionalShadowAttenuation(shadowContext,
+					                posSS, IN.posWS, normalWS_geom,
+					                lightData.shadowIndex, lightDir);
+
+
                 // lighting
-                float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, _WrapRGB, _WrapR);
+                float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, _WrapRGB, _WrapR, shadow);
                 float3 specular = EvaluateSpecularDirectLight(normalWS_high, normalWS_geom, camDir, lightDir, lightData.color, baseColor, 1-roughness, rmo.g);
                 
-                float3 col = diffuse + specular;
+                float3 col = diffuse;
                 return half4(col, 1);
             }
             ENDHLSL
