@@ -87,4 +87,19 @@ float3 EvaluateSpecularDirectLight(
     return brdf * irradiance;
 }
 
+float3 EvaluateTransmittanceDirectLight(
+        float3 transColor, 
+        float3 normal,
+        float3 lightDir,
+        float3 lightColor,
+        float thickness,
+        float2 thicknessScaleBias,
+        Texture2D texTransLUT,
+        SamplerState ss)
+{
+    float T = texTransLUT.Sample(ss, float2(thickness * thicknessScaleBias.x + thicknessScaleBias.y, 0));
+    float E = max(0.3 + dot(-normal, lightDir), 0.0);
+    return T * lightColor * transColor * E;
+}
+
 #endif 

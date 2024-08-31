@@ -3,7 +3,7 @@
 
     #define PI 3.14159265359
     #define MAX_ITERATION 360
-    #define WRAP _Wrap
+    #define WRAP 0
 
     // Gaussian Function
     float Gaussian ( float v , float r )
@@ -44,6 +44,16 @@
         }
     
         return warppedLight / normFactor;
+    }
+
+    float3 T(float s) 
+    {
+        return float3(0.233, 0.455, 0.649) * exp(-s * s / 0.0064) +
+               float3(0.1, 0.336, 0.344) * exp(-s * s / 0.0484) +
+               float3(0.118, 0.198, 0.0) * exp(-s * s / 0.187) +
+               float3(0.113, 0.007, 0.007) * exp(-s * s / 0.567) +
+               float3(0.358, 0.004, 0.0) * exp(-s * s / 1.99) +
+               float3(0.078, 0.0, 0.0) * exp(-s * s / 7.41);
     }
 
 #endif 

@@ -16,16 +16,16 @@ MonoBehaviour:
   interCascadeBorders: 1
   maxShadowDistance:
     m_OverrideState: 1
-    m_Value: 10
+    m_Value: 50
   directionalTransmissionMultiplier:
     m_OverrideState: 0
     m_Value: 1
   cascadeShadowSplitCount:
     m_OverrideState: 1
-    m_Value: 4
+    m_Value: 1
   cascadeShadowSplit0:
-    m_OverrideState: 0
-    m_Value: 0.016
+    m_OverrideState: 1
+    m_Value: 0.0137400525
   cascadeShadowSplit1:
     m_OverrideState: 0
     m_Value: 0.3
@@ -33,7 +33,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0.43384135
   cascadeShadowBorder0:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   cascadeShadowBorder1:
     m_OverrideState: 0

@@ -97,7 +97,7 @@ float EvaluateThickness(inout HDShadowContext shadowContext, Texture2D tex, Samp
     shadowContext.shadowSplitIndex = shadowSplitIndex;
     shadowContext.fade = alpha;
 #endif
-    float thickness;
+    float thicknessNormalized;
 
     float3 basePositionWS = positionWS;
 
@@ -145,10 +145,10 @@ float EvaluateThickness(inout HDShadowContext shadowContext, Texture2D tex, Samp
 
         // posTC.z - camera depth 
         // shadow - light depth 
-        thickness = abs(shadow - posTC.z);
+        thicknessNormalized = saturate(shadow - posTC.z);
     }
 
-    return thickness;
+    return thicknessNormalized;
 }
 
 

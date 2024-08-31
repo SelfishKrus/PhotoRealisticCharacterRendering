@@ -3,6 +3,9 @@ Shader "PRC/Skin_PISSS"
     Properties
     {
         _T_BaseColor ("Texture", 2D) = "white" {}
+        _T_TransmittanceColor ("Transmittance Color", 2D) = "white" {}
+        _TransmittanceTint ("Transmittance Tint", Color) = (1,1,1,1)
+        _TransScaleBias ("Transmittance Scale and Bias", Vector) = (1,0,0,0)
         _T_Normal ("Normal Map", 2D) = "bump" {}
         _NormalScale_K ("Normal Scale", Range(0,5)) = 1
         _T_Rmo ("RMO", 2D) = "white" {} 
@@ -16,6 +19,7 @@ Shader "PRC/Skin_PISSS"
         _T_Curvature ("Curvature", 2D) = "gray" {}
         _CurvatureScaleBias ("Curvature Scale and Bias", Vector) = (1,0,0,0)
         _T_LUT_Diffuse ("Diffuse LUT", 2D) = "white" {}
+        _T_LUT_Trans ("Transmittance LUT", 2D) = "white" {}
         
         _Test ("Test", Vector) = (1,1,1,1)
     }
@@ -224,6 +228,8 @@ Shader "PRC/Skin_PISSS"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowAlgorithms.hlsl"
 
             #define DIRECTIONAL_SHADOW_HIGH
+            #define LIGHT_FAR_PLANE 50.0
+            #define MIN_TRANSMITTANCE_THICKNESS_NORMALIZED 0.003
 
             struct Attributes
             {
@@ -247,6 +253,7 @@ Shader "PRC/Skin_PISSS"
             SAMPLER(SamplerState_Linear_Repeat);
             SAMPLER(SamplerState_Linear_Clamp);
             TEXTURE2D(_T_BaseColor);
+            TEXTURE2D(_T_TransmittanceColor);
             TEXTURE2D(_T_Normal);
             TEXTURE2D(_T_Rmo);
             TEXTURE2D(_T_Thickness);
@@ -254,6 +261,7 @@ Shader "PRC/Skin_PISSS"
             TEXTURE2D(_T_Curvature);
 
             TEXTURE2D(_T_LUT_Diffuse);
+            TEXTURE2D(_T_LUT_Trans);
 
             float _RoughnessScale;
             float _NormalScale_K;
@@ -262,6 +270,8 @@ Shader "PRC/Skin_PISSS"
             float _LowNormalLod;
             float2 _CurvatureScaleBias;
             float4 _Test;
+            float3 _TransmittanceTint;
+            float2 _TransScaleBias;
 
             #include "PreIntegratedSkin.hlsl"
             #include "HDShadowUtilities.hlsl"
@@ -281,6 +291,7 @@ Shader "PRC/Skin_PISSS"
             {   
                 // TEX 
                 float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, IN.uv).rgb;
+                float3 transmittanceColor = SAMPLE_TEXTURE2D(_T_TransmittanceColor, SamplerState_Linear_Repeat, IN.uv).rgb;
                 float3 normalTS_high = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, IN.uv, 0));
                 normalTS_high.xy *= _NormalScale_K;
                 normalTS_high.z = sqrt(1 - saturate(dot(normalTS_high.xy, normalTS_high.xy)));
@@ -308,15 +319,17 @@ Shader "PRC/Skin_PISSS"
 					                posSS, IN.posWS, normalWS_geom,
 					                lightData.shadowIndex, lightDir);
 
+                // Get thickness from cam depth and light depth
+                int unusedSplitIndex;
+                float thicknessNormalized = EvaluateThickness(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, posSS, IN.posWS, normalWS_geom, lightData.shadowIndex, lightDir, unusedSplitIndex);
+                float thickness = max(thicknessNormalized, MIN_TRANSMITTANCE_THICKNESS_NORMALIZED) * LIGHT_FAR_PLANE;
+
                 // lighting
                 float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, _WrapRGB, _WrapR, shadow);
                 float3 specular = EvaluateSpecularDirectLight(normalWS_high, normalWS_geom, camDir, lightDir, lightData.color, baseColor, 1-roughness, rmo.g);
-
-                // Get thickness from cam depth and light depth
-                int unusedSplitIndex;
-                float shadowmap = EvaluateThickness(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, posSS, IN.posWS, normalWS_geom, lightData.shadowIndex, lightDir, unusedSplitIndex);
+                float3 transmittance = EvaluateTransmittanceDirectLight(_TransmittanceTint * baseColor, normalWS_geom, lightDir, lightData.color, thickness, _TransScaleBias.xy, _T_LUT_Trans, SamplerState_Linear_Clamp);
                 
-                float3 col = shadowmap;
+                float3 col = transmittance;
                 return half4(col, 1);
             }
             ENDHLSL
