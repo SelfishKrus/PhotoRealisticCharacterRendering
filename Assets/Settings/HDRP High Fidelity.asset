@@ -39,11 +39,11 @@ MonoBehaviour:
     maximumWaterDecalCount: 48
     waterScriptInteractionsMode: 0
     waterFullCPUSimulation: 0
-    supportComputeThickness: 0
+    supportComputeThickness: 1
     computeThicknessResolution: 1
     computeThicknessLayerMask:
       serializedVersion: 2
-      m_Bits: 0
+      m_Bits: 4294967295
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
