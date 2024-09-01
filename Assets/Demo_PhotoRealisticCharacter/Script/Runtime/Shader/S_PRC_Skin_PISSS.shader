@@ -1,34 +1,40 @@
 Shader "PRC/Skin_PISSS"
 {
     Properties
-    {
+    {   
+        [Header(Base Map)]
+        [Space(10)]
         _T_BaseColor ("Texture", 2D) = "white" {}
-
         _T_Normal ("Normal Map", 2D) = "bump" {}
         _NormalScale_K ("Normal Scale", Range(0,5)) = 1
         _LowNormalLod ("Low Normal LOD", Range(0,10)) = 5
-
         _T_Rmo ("RMO", 2D) = "white" {} 
         _RoughnessScale ("Roughness Scale", Range(0, 1.5)) = 1
+
+        _T_DetailNormal ("Detail Normal Map", 2D) = "bump" {}
+        _DetailNormalScale_K ("Detail Normal Scale", Range(0,10)) = 1
+        [Space(20)]
+
+        [Header(Subsurface Scattering)]
+        [Space(10)]
+        _T_Curvature ("Curvature", 2D) = "gray" {}
+        _CurvatureScaleBias ("Curvature Scale and Bias", Vector) = (1,0,0,0)
+        _T_LUT_Diffuse ("Diffuse LUT", 2D) = "white" {}
         [Space(20)]
         
         [Header(Transmittance)]
         [Space(10)]
-        _TransmittanceTint ("Transmittance Tint", Color) = (1,1,1,1)
-        _TransScaleBias ("Transmittance Scale and Bias", Vector) = (1,0,0,0)
         _T_Thickness ("Thickness", 2D) = "white" {}
+        _TransmittanceTint ("Transmittance Tint", Color) = (1,1,1,1)
+        _T_LUT_Trans ("Transmittance LUT", 2D) = "white" {}
+        _TransScaleBias ("Transmittance Scale and Bias", Vector) = (1,0,0,0)
         _MinThicknessNormalized ("Min Thickness Normalized", Range(0, 0.01)) = 0.0045
         [Space(20)]
-
-        _WrapRGB ("Wrap", Range(0, 1)) = 1
-        _WrapR ("Wrap Red", Range(0, 1)) = 1
-        
-        _T_Curvature ("Curvature", 2D) = "gray" {}
-        _CurvatureScaleBias ("Curvature Scale and Bias", Vector) = (1,0,0,0)
-        _T_LUT_Diffuse ("Diffuse LUT", 2D) = "white" {}
-        _T_LUT_Trans ("Transmittance LUT", 2D) = "white" {}
         
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
+        [Toggle(DETAIL_NORMAL_K)] _DetailNormal_K ("Enable Detail Normal", Float) = 1
+        [Space(20)]
+
         _Test ("Test", Vector) = (1,1,1,1)
     }
 
@@ -220,6 +226,7 @@ Shader "PRC/Skin_PISSS"
 	        #pragma multi_compile_fragment DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
             #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
             #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
+            #pragma multi_compile_fragment DETAIL_NORMAL_K _
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -257,11 +264,13 @@ Shader "PRC/Skin_PISSS"
             };
 
             float4 _MainTex_ST;
+            float4 _T_DetailNormal_ST;
 
             SAMPLER(SamplerState_Linear_Repeat);
             SAMPLER(SamplerState_Linear_Clamp);
             TEXTURE2D(_T_BaseColor);
             TEXTURE2D(_T_Normal);
+            TEXTURE2D(_T_DetailNormal);
             TEXTURE2D(_T_Rmo);
             TEXTURE2D(_T_Thickness);
 
@@ -272,8 +281,7 @@ Shader "PRC/Skin_PISSS"
 
             float _RoughnessScale;
             float _NormalScale_K;
-            float _WrapRGB;
-            float _WrapR;
+            float _DetailNormalScale_K;
             float _LowNormalLod;
             float2 _CurvatureScaleBias;
             float4 _Test;
@@ -300,11 +308,25 @@ Shader "PRC/Skin_PISSS"
                 // TEX 
                 float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, IN.uv).rgb;
                 float3 transmittanceColor = baseColor * _TransmittanceTint;
+                float4 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, IN.uv);
+
+                // normal 
                 float3 normalTS_high = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, IN.uv, 0));
                 normalTS_high.xy *= _NormalScale_K;
                 normalTS_high.z = sqrt(1 - saturate(dot(normalTS_high.xy, normalTS_high.xy)));
+                // specular normal 
+                #ifdef DETAIL_NORMAL_K
+                    float3 normalTS_detail = UnpackNormal(SAMPLE_TEXTURE2D(_T_DetailNormal, SamplerState_Linear_Repeat, IN.uv * _T_DetailNormal_ST.xx + _T_DetailNormal_ST.zw));
+                    normalTS_detail.xy *= _DetailNormalScale_K * rmo.a;
+                    normalTS_detail.z = sqrt(1 - saturate(dot(normalTS_detail.xy, normalTS_detail.xy)));
+                    float3 normalTS_specular = BlendNormal_RNM(normalTS_high*0.5+0.5, normalTS_detail*0.5+0.5);
+                #else 
+                    float3 normalTS_specular = normalTS_high;
+                #endif
+
                 float3 normalTS_low = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, IN.uv, _LowNormalLod));
-                float3 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, IN.uv).rgb;
+
+
                 float roughness = lerp(0.001, 1.0, rmo.r * _RoughnessScale);
                 float curvature = SAMPLE_TEXTURE2D(_T_Curvature, SamplerState_Linear_Repeat, IN.uv).r * _CurvatureScaleBias.x + _CurvatureScaleBias.y;
 
@@ -313,6 +335,7 @@ Shader "PRC/Skin_PISSS"
                 float3x3 m_worldToTangent = float3x3(IN.tangentWS.xyz, bitangentWS.xyz, IN.normalWS.xyz);
                 float3x3 m_tangentToWorld = transpose(m_worldToTangent);
                 float3 normalWS_high = mul(m_tangentToWorld, normalTS_high);
+                float3 normalWS_specular = mul(m_tangentToWorld, normalTS_specular);
                 float3 normalWS_low = mul(m_tangentToWorld, normalTS_low);
                 float3 normalWS_geom = IN.normalWS;
 
@@ -337,15 +360,14 @@ Shader "PRC/Skin_PISSS"
                 float thickness = max(thicknessNormalized, _MinThicknessNormalized) * LIGHT_FAR_PLANE;
 
                 // lighting
-                float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, _WrapRGB, _WrapR, shadow);
-                float3 specular = EvaluateSpecularDirectLight(normalWS_high, normalWS_geom, camDir, lightDir, lightData.color, baseColor, 1-roughness, rmo.g, shadow);
+                float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, shadow);
+                float3 specular = EvaluateSpecularDirectLight(normalWS_specular, normalWS_geom, camDir, lightDir, lightData.color, baseColor, 1-roughness, rmo.g, shadow);
                 float3 transmittance = EvaluateTransmittanceDirectLight(transmittanceColor, normalWS_geom, lightDir, lightData.color, thickness, _TransScaleBias.xy, _T_LUT_Trans, SamplerState_Linear_Clamp);
                 // more transmittance at the edge
                 // less transmittance in the center
-                transmittance *= saturate(pow(1-dot(normalWS_geom, camDir), 2));
+                //transmittance *= saturate(pow(1-dot(normalWS_geom, camDir), 2));
                 
-                float3 col = diffuse + transmittance + specular;
-                col *= rmo.b;
+                float3 col = (diffuse + specular) * rmo.b + transmittance;
                 return half4(col, 1);
             }
             ENDHLSL

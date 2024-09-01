@@ -5,6 +5,16 @@
 
 #define F0_SKIN 0.028
 
+// Reoriented Normal Mapping Blending
+// input normals' range - [0, 1]
+float3 BlendNormal_RNM(float3 n1_map, float3 n2_map)
+{
+    float3 t = n1_map.xyz*float3( 2,  2, 2) + float3(-1, -1,  0);
+    float3 u = n2_map.xyz*float3(-2, -2, 2) + float3( 1,  1, -1);
+    float3 r = t*dot(t, u) - u*t.z;
+    return normalize(r);
+}
+
 float3 SkinSSS(
         float curvature, 
         float3 NoLRGB,
@@ -29,8 +39,6 @@ float3 EvaluateSSSDirectLight(
         float curvature,
         Texture2D texDiffuseLUT,
         SamplerState ss,
-        float wrapRGB,
-        float wrapR,
         float shadow)
 {
     float NoLBlurredUnclamped = dot(normalLow, lightDir);
@@ -42,8 +50,6 @@ float3 EvaluateSSSDirectLight(
     float NoLGUnclamped = dot(normalG, lightDir);
     float NoLBUnclamped = dot(normalB, lightDir);
     float3 NoLRGB = float3(NoLBlurredUnclamped, NoLGUnclamped, NoLBUnclamped);
-    NoLRGB = (NoLRGB + wrapRGB) / (1.0 + wrapRGB);
-    NoLRGB.r = (NoLRGB.r + wrapR) / (1.0 + wrapR);
 
     NoLRGB *= shadow;
     
