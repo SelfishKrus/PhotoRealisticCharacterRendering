@@ -11,7 +11,8 @@ Material:
   m_Shader: {fileID: 4800000, guid: 60e4c25ab60f6df4c844a551ab2aa0f0, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - RECEIVE_DIRECTIONAL_SHADOW
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -68,21 +69,23 @@ Material:
     - _Compare: 8
     - _Gloss: 0.645
     - _Glossiness: 0.625
-    - _LowNormalLod: 6.77
+    - _LowNormalLod: 6
+    - _MinThicknessNormalized: 0.0045
     - _NormalScale: 0.65
-    - _NormalScale_K: 1
+    - _NormalScale_K: 0.7
     - _Pass: 2
+    - _ReceiveDirectionalShadow: 1
     - _RoughnessScale: 1
     - _SpecularReflectance: 0.028
     - _StencilMask: 192
     - _StencilWriteMask: 192
     - _Wrap: 0.54
-    - _WrapR: 0.379
-    - _WrapRGB: 0
+    - _WrapR: 0.3
+    - _WrapRGB: 0.15
     m_Colors:
-    - _CurvatureScaleBias: {r: 1, g: 0.4, b: 0, a: 0}
-    - _Test: {r: 1, g: 0, b: 2.12, a: 0.95}
-    - _TransScaleBias: {r: 1, g: 0, b: 0, a: 0}
+    - _CurvatureScaleBias: {r: 0.5, g: 0.25, b: 0, a: 0}
+    - _Test: {r: 1, g: 0, b: 0, a: 0}
+    - _TransScaleBias: {r: 0.7, g: 0, b: 0, a: 0}
     - _TransmittanceTint: {r: 1, g: 0.56289303, b: 0.56289303, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
   m_BuildTextureStacks: []

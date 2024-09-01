@@ -58,7 +58,8 @@ float3 EvaluateSpecularDirectLight(
         float3 lightColor,
         float3 baseColor,
         float gloss,
-        float metallic)
+        float metallic,
+        float shadow)
 {
     float3 F0 = lerp(F0_SKIN, baseColor, metallic);
     float specPower = exp2(gloss * 13); // remap to be more linear
@@ -82,7 +83,7 @@ float3 EvaluateSpecularDirectLight(
     float F = Fresnel_Schlick(F0, LoH);
     
     float3 brdf = lerp(D0*V0, D1*V1, 0.15) * F;
-    float3 irradiance = NoL * lightColor;
+    float3 irradiance = NoL * lightColor * shadow;
     
     return brdf * irradiance;
 }
