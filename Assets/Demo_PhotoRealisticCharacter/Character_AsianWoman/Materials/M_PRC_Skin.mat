@@ -38,7 +38,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_DetailNormal:
-        m_Texture: {fileID: 2800000, guid: a1a2828fde7ed32479e61b3ff1457ace, type: 3}
+        m_Texture: {fileID: 2800000, guid: 2868740a63e609045b6881aeaf3fe643, type: 3}
         m_Scale: {x: 10, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_LUT_Diffuse:
@@ -73,7 +73,7 @@ Material:
     m_Floats:
     - _Compare: 8
     - _DetailNormalScale: 1
-    - _DetailNormalScale_K: 0.65
+    - _DetailNormalScale_K: 1
     - _DetailNormal_K: 1
     - _Gloss: 0.645
     - _Glossiness: 0.625
