@@ -3,6 +3,17 @@
 
 	#define PI 3.14159265359
 
+	// replace lut with tex in the script 
+	#define PreIntegratedGF T_LUT_IntegrateBRDF
+	#define sampler_PreIntegratedGF sampler_T_LUT_IntegrateBRDF
+
+	// to deal with the difference between unity and ue
+	#define Texture2DSampleLevel(tex, sampler, uv, lod) SAMPLE_TEXTURE2D_LOD(tex, sampler, uv, lod)
+	#define PreIntegratedGFSampler sampler_PreIntegratedGF
+
+	TEXTURE2D(PreIntegratedGF);
+	SAMPLER(sampler_PreIntegratedGF);
+
 	// Physically based shading model
 	// parameterized with the below options
 	// [ Karis 2013, "Real Shading in Unreal Engine 4" slide 11 ]
@@ -143,5 +154,85 @@
 		float Vis_SmithL = NoV * length(float3(ax * XoL, ay * YoL, NoL));
 		return 0.5 * rcp(Vis_SmithV + Vis_SmithL);
 	}
+
+	// [Karis 2013, "Real Shading in Unreal Engine 4" slide 11]
+	half3 EnvBRDF( half3 SpecularColor, half Roughness, half NoV )
+	{
+		// Importance sampled preintegrated G * F
+		float2 AB = Texture2DSampleLevel( PreIntegratedGF, PreIntegratedGFSampler, float2( NoV, Roughness ), 0 ).rg;
+
+		// Anything less than 2% is physically impossible and is instead considered to be shadowing 
+		float3 GF = SpecularColor * AB.x + saturate( 50.0 * SpecularColor.g ) * AB.y;
+		return GF;
+	}
+
+	half3 EnvBRDF(half3 F0, half3 F90, half Roughness, half NoV)
+	{
+		// Importance sampled preintegrated G * F
+		float2 AB = Texture2DSampleLevel(PreIntegratedGF, PreIntegratedGFSampler, float2(NoV, Roughness), 0).rg;
+		float3 GF = F0 * AB.x + F90 * AB.y;
+		return GF;
+	}
+
+	half2 EnvBRDFApproxLazarov(half Roughness, half NoV)
+	{
+		// [ Lazarov 2013, "Getting More Physical in Call of Duty: Black Ops II" ]
+		// Adaptation to fit our G term.
+		const half4 c0 = { -1, -0.0275, -0.572, 0.022 };
+		const half4 c1 = { 1, 0.0425, 1.04, -0.04 };
+		half4 r = Roughness * c0 + c1;
+		half a004 = min(r.x * r.x, exp2(-9.28 * NoV)) * r.x + r.y;
+		half2 AB = half2(-1.04, 1.04) * a004 + r.zw;
+		return AB;
+	}
+
+	half3 EnvBRDFApprox( half3 SpecularColor, half Roughness, half NoV )
+	{
+		half2 AB = EnvBRDFApproxLazarov(Roughness, NoV);
+
+		// Anything less than 2% is physically impossible and is instead considered to be shadowing
+		// Note: this is needed for the 'specular' show flag to work, since it uses a SpecularColor of 0
+		float F90 = saturate( 50.0 * SpecularColor.g );
+
+		return SpecularColor * AB.x + F90 * AB.y;
+	}
+
+	half3 EnvBRDFApprox(half3 F0, half3 F90, half Roughness, half NoV)
+	{
+		half2 AB = EnvBRDFApproxLazarov(Roughness, NoV);
+		return F0 * AB.x + F90 * AB.y;
+	}
+
+	half EnvBRDFApproxNonmetal( half Roughness, half NoV )
+	{
+		// Same as EnvBRDFApprox( 0.04, Roughness, NoV )
+		const half2 c0 = { -1, -0.0275 };
+		const half2 c1 = { 1, 0.0425 };
+		half2 r = Roughness * c0 + c1;
+		return min( r.x * r.x, exp2( -9.28 * NoV ) ) * r.x + r.y;
+	}
+
+	void EnvBRDFApproxFullyRough(inout half3 DiffuseColor, inout half3 SpecularColor)
+	{
+		// Factors derived from EnvBRDFApprox( SpecularColor, 1, 1 ) == SpecularColor * 0.4524 - 0.0024
+		DiffuseColor += SpecularColor * 0.45;
+		SpecularColor = 0;
+		// We do not modify Roughness here as this is done differently at different places.
+	}
+	void EnvBRDFApproxFullyRough(inout half3 DiffuseColor, inout half SpecularColor)
+	{
+		DiffuseColor += SpecularColor * 0.45;
+		SpecularColor = 0;
+	}
+	void EnvBRDFApproxFullyRough(inout half3 DiffuseColor, inout half3 F0, inout half3 F90)
+	{
+		DiffuseColor += F0 * 0.45;
+		F0 = F90 = 0;
+	}
+
+	float3 Diffuse_Lambert ( float3 DiffuseColor )
+    {
+        return DiffuseColor;
+    }
 
 #endif 

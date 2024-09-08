@@ -1,7 +1,7 @@
 #ifndef PRE_INTEGRATED_SKIN_INCLUDED
 #define PRE_INTEGRATED_SKIN_INCLUDED
 
-#include "BxDF.hlsl"
+#include "K_BxDF.hlsl"
 
 #define F0_SKIN 0.028
 
