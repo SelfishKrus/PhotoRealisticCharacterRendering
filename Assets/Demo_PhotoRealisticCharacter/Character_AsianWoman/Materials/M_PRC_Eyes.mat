@@ -1,0 +1,109 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_PRC_Eyes
+  m_Shader: {fileID: 4800000, guid: 243f76998712f8a4bbf642d296d0e2b6, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - PreIntegratedGF:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_BaseColor:
+        m_Texture: {fileID: 2800000, guid: 6925c1464e9374e488741a43c0af847c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Curvature:
+        m_Texture: {fileID: 2800000, guid: 5f09667cf0398c149a9aca7ed31d89f2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_DetailNormal:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_LUT_Diffuse:
+        m_Texture: {fileID: 8600000, guid: e242bacc2a42d7b459c5b599a21fdc28, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_LUT_IntegrateBRDF:
+        m_Texture: {fileID: 2800000, guid: a242cc7ff9e5280488d6c905bee0c362, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_LUT_Shadow:
+        m_Texture: {fileID: 2800000, guid: 179b3855b2ecfd14a80240a335548f9d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_LUT_Trans:
+        m_Texture: {fileID: 8600000, guid: 0c07199a584c2d84dafb82a2504c6fde, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Normal:
+        m_Texture: {fileID: 2800000, guid: d18ae7adb6348804bb47269c654162c3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Rmo:
+        m_Texture: {fileID: 2800000, guid: 9a649a189da98354599c60e8c3538958, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Thickness:
+        m_Texture: {fileID: 2800000, guid: f2a7f7e00bf08fb4087a7cde74f5790e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_TransmittanceColor:
+        m_Texture: {fileID: 2800000, guid: 1f9c427b9f5544e48a0bf353256f5883, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AOScale: 1
+    - _Compare: 8
+    - _DetailNormalScale: 1
+    - _DetailNormalScale_K: 1
+    - _DetailNormal_K: 0
+    - _Gloss: 0.645
+    - _Glossiness: 0.625
+    - _LowNormalLod: 6
+    - _MetallicScale: 1
+    - _MinThicknessNormalized: 0.0045
+    - _NormalScale: 0.65
+    - _NormalScale_K: 1
+    - _Pass: 2
+    - _ReceiveDirectionalShadow: 0
+    - _RoughnessScale: 1
+    - _SpecularReflectance: 0.028
+    - _StencilMask: 192
+    - _StencilWriteMask: 192
+    - _Wrap: 0.54
+    - _WrapLighting: 1
+    - _WrapR: 0
+    - _WrapRGB: 0
+    m_Colors:
+    - _CurvatureScaleBias: {r: 0.5, g: 0.35, b: 0, a: 0}
+    - _Test: {r: 1, g: 0, b: 0, a: 0}
+    - _TransScaleBias: {r: 1, g: -0.08, b: 0, a: 0}
+    - _TransmittanceTint: {r: 0.5597484, g: 0.01662619, b: 0, a: 1}
+    - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
