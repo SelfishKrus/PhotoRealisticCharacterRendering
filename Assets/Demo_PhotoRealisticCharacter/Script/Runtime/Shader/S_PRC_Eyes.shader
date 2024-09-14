@@ -304,7 +304,9 @@ Shader "PRC/Eyes"
                 // PRE
                 DirectionalLightData lightData = _DirectionalLightDatas[0];
                 float3 lightDir = -normalize(lightData.forward);
-                float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
+                // precision problems 
+                //float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
+                float3 camDir = mul(transpose(UNITY_MATRIX_V), float3(0,0,1));
                 float3 H = normalize(camDir + lightDir);
 
                 float NoLUnclamped = dot(normalWS_high, lightDir);
@@ -340,7 +342,7 @@ Shader "PRC/Eyes"
 
                 // environment 
                 // env specular
-                float3 reflectDir = reflect(-camDir, normalWS_geom);
+                float3 reflectDir = reflect(-camDir, normalWS_high);
                 float3 brdf_specular_env = EnvBRDF(F0, roughness, NoV);
                 float3 irradiance_IBL = SampleSkyTexture(reflectDir, mipmapLevelLod, 0);
                 float3 specular_env = brdf_specular_env * irradiance_IBL * ao;
@@ -354,6 +356,7 @@ Shader "PRC/Eyes"
                 
                 float3 col = diffuse_DL + specular_DL;
                 col = diffuse + specular;
+                col = irradiance_IBL;
                 return half4(col, 1);
             }
             ENDHLSL
