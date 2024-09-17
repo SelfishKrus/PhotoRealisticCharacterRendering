@@ -7,7 +7,7 @@ Shader "PRC/Eyes"
         _T_BaseColor ("Texture", 2D) = "white" {}
         _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
         _T_Normal ("Normal Map", 2D) = "bump" {}
-        _NormalScale_K ("Normal Scale", Range(0,5)) = 1
+        _NormalScale_K ("Normal Scale", Range(-5,5)) = 1
         [Space(20)]
 
         _T_Rmo ("RMO", 2D) = "white" {} 
@@ -38,6 +38,7 @@ Shader "PRC/Eyes"
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
         [Toggle(DETAIL_NORMAL_K)] _DetailNormal_K ("Enable Detail Normal", Float) = 1
         [Toggle(SCLERA_SSS)] _ScleraSSS ("Enable Sclera SSS", Float) = 1
+        [Toggle(IRIS_PARALLAX)] _IrisParallax ("Enable Iris Parallax", Float) = 1
         [Space(20)]
 
         _Test ("Test", Vector) = (1,1,1,1)
@@ -232,6 +233,7 @@ Shader "PRC/Eyes"
             #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
             #pragma multi_compile_fragment DETAIL_NORMAL_K _
             #pragma multi_compile_fragment SCLERA_SSS _
+            #pragma multi_compile_fragment IRIS_PARALLAX _
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -316,14 +318,14 @@ Shader "PRC/Eyes"
                 float3 camDirWS = mul(transpose(UNITY_MATRIX_V), float3(0,0,1));
                 float height = SAMPLE_TEXTURE2D(_T_Height, SamplerState_Linear_Repeat, IN.uv).r;
                 height *= _HeightScale;
-                float3 camDirTS = mul(m_worldToTangent, camDirWS);
-                //float2 parallaxOffset = ParallaxOffset_K(height, _HeightScale, camDirTS);
 
-                float2 offsetTS = ParallaxOffset_PhysicallyBased(float3(1,0,0), IN.normalWS, camDirWS, height, UNITY_MATRIX_M, m_worldToTangent);
-                float mask = 1 - CircleSDF(IN.uv, float2(0.5, 0.5), _IrisMask);
-                float2 uv_parallax = IN.uv + mask * offsetTS;
-
-                float3 res = uv_parallax.xyy;
+                #if defined(IRIS_PARALLAX)
+                    float2 offsetTS = ParallaxOffset_PhysicallyBased(float3(1,0,0), IN.normalWS, camDirWS, height, UNITY_MATRIX_M, m_worldToTangent);
+                    float mask = 1 - CircleSDF(IN.uv, float2(0.5, 0.5), _IrisMask);
+                    float2 uv_parallax = IN.uv + mask * offsetTS;
+                #else 
+                    float2 uv_parallax = IN.uv;
+                #endif
 
                 // TEX - iris
                 float4 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, uv_parallax);

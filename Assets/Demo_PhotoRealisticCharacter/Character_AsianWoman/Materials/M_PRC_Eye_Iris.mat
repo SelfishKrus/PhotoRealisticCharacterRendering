@@ -12,6 +12,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - IRIS_PARALLAX
   - SCLERA_SSS
   m_InvalidKeywords:
   - EYE_SSS
@@ -95,7 +96,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AOScale: 1
+    - _AOScale: 0.5
     - _AOScale_Outer: 1
     - _Compare: 8
     - _CorneaRoughness: 0.05
@@ -106,6 +107,8 @@ Material:
     - _Gloss: 0.645
     - _Glossiness: 0.625
     - _HeightScale: 20
+    - _IrisMask: -0.675
+    - _IrisParallax: 1
     - _LowNormalLod: 6
     - _MetallicScale: 1
     - _MetallicScale_Outer: 1
@@ -128,7 +131,7 @@ Material:
     - _WrapRGB: 0
     m_Colors:
     - _CurvatureScaleBias: {r: 0.5, g: 0.35, b: 0, a: 0}
-    - _Test: {r: -0.65, g: 1, b: 0, a: 0}
+    - _Test: {r: -1, g: 1, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: -0.08, b: 0, a: 0}
     - _TransmittanceTint: {r: 0.5597484, g: 0.01662619, b: 0, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
