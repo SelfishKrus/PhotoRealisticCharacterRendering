@@ -9,7 +9,8 @@ Shader "PRC/Skin_PISSS"
         _NormalScale_K ("Normal Scale", Range(0,5)) = 1
         _LowNormalLod ("Low Normal LOD", Range(0,10)) = 5
         _T_Rmo ("RMO", 2D) = "white" {} 
-        _RoughnessScale ("Roughness Scale", Range(0, 1.5)) = 1
+        _RoughnessScale ("Roughness Scale", Range(0, 5)) = 1
+        _AOScale ("AO Scale", Range(0, 1.5)) = 1
 
         _T_DetailNormal ("Detail Normal Map", 2D) = "bump" {}
         _DetailNormalScale_K ("Detail Normal Scale", Range(0,10)) = 1
@@ -20,11 +21,19 @@ Shader "PRC/Skin_PISSS"
         _T_Curvature ("Curvature", 2D) = "gray" {}
         _CurvatureScaleBias ("Curvature Scale and Bias", Vector) = (1,0,0,0)
         _T_LUT_Diffuse ("Diffuse LUT", 2D) = "white" {}
+        [HDR]_WrapLighting ("Wrap", Color) = (1,1,1,1)
+        [Space(20)]
+
+        [Header(Specular)]
+        [Space(10)]
+        _DirectionalSpecularIntensity ("Directional Specular Intensity", Range(0, 15)) = 8
+        _DirectionalSpecularIrradianceBias ("Directional Specular Irradiance Bias", Range(-1, 1)) = 0.725
         [Space(20)]
         
         [Header(Transmittance)]
         [Space(10)]
         _T_Thickness ("Thickness", 2D) = "white" {}
+        _TransScaleBiasEnv ("Transmittance Scale and Bias Env", Vector) = (1,0,0,0)
         _TransmittanceTint ("Transmittance Tint", Color) = (1,1,1,1)
         _T_LUT_Trans ("Transmittance LUT", 2D) = "white" {}
         _TransScaleBias ("Transmittance Scale and Bias", Vector) = (1,0,0,0)
@@ -233,6 +242,7 @@ Shader "PRC/Skin_PISSS"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
             // for directional shadow
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
@@ -280,6 +290,7 @@ Shader "PRC/Skin_PISSS"
             TEXTURE2D(_T_LUT_Trans);
 
             float _RoughnessScale;
+            float _AOScale;
             float _NormalScale_K;
             float _DetailNormalScale_K;
             float _LowNormalLod;
@@ -287,7 +298,11 @@ Shader "PRC/Skin_PISSS"
             float4 _Test;
             float3 _TransmittanceTint;
             float2 _TransScaleBias;
+            float2 _TransScaleBiasEnv;
             float _MinThicknessNormalized;
+            float4 _WrapLighting;
+            float _DirectionalSpecularIntensity;
+            float _DirectionalSpecularIrradianceBias;
 
             #include "PreIntegratedSkin.hlsl"
             #include "HDShadowUtilities.hlsl"
@@ -309,6 +324,7 @@ Shader "PRC/Skin_PISSS"
                 float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, IN.uv).rgb;
                 float3 transmittanceColor = baseColor * _TransmittanceTint;
                 float4 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, IN.uv);
+                float ao = lerp(0, 1, rmo.b * _AOScale);
 
                 // normal 
                 float3 normalTS_high = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, IN.uv, 0));
@@ -328,6 +344,7 @@ Shader "PRC/Skin_PISSS"
 
 
                 float roughness = lerp(0.001, 1.0, rmo.r * _RoughnessScale);
+                float a = roughness * roughness;
                 float curvature = SAMPLE_TEXTURE2D(_T_Curvature, SamplerState_Linear_Repeat, IN.uv).r * _CurvatureScaleBias.x + _CurvatureScaleBias.y;
 
                 // NormalTS to NormalWS
@@ -354,20 +371,43 @@ Shader "PRC/Skin_PISSS"
                     float shadow = 1;
                 #endif
 
+                float NoV = saturate(dot(normalWS_high, camDir));
+
                 // Get thickness from cam depth and light depth
                 int unusedSplitIndex;
                 float thicknessNormalized = EvaluateThickness(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, posSS, IN.posWS, normalWS_geom, lightData.shadowIndex, lightDir, unusedSplitIndex);
                 float thickness = max(thicknessNormalized, _MinThicknessNormalized) * LIGHT_FAR_PLANE;
 
                 // lighting
-                float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, shadow);
-                float3 specular = EvaluateSpecularDirectLight(normalWS_specular, normalWS_geom, camDir, lightDir, lightData.color, baseColor, 1-roughness, rmo.g, shadow);
+                // diffuse DL
+                float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color, _WrapLighting, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp,  shadow);
+                // specular DL
+                float3 specular = EvaluateSpecularDirectLight(normalWS_specular, camDir, lightDir, lightData.color, roughness, _DirectionalSpecularIntensity, _DirectionalSpecularIrradianceBias, shadow);
+                // trans DL
                 float3 transmittance = EvaluateTransmittanceDirectLight(transmittanceColor, normalWS_geom, lightDir, lightData.color, thickness, _TransScaleBias.xy, _T_LUT_Trans, SamplerState_Linear_Clamp);
+                
                 // more transmittance at the edge
                 // less transmittance in the center
                 //transmittance *= saturate(pow(1-dot(normalWS_geom, camDir), 2));
+
+                // diffuse env
+                float3 irradiance_SH = EvaluateLightProbe(normalWS_low);
+                float3 diffuse_env = EvaluateSSSEnv(irradiance_SH, baseColor, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, ao);
+                // trans env 
+                float thickness_env = SAMPLE_TEXTURE2D(_T_Thickness, SamplerState_Linear_Repeat, IN.uv).r;
+                float3 transmittance_env = EvaluateTransmittanceEnv(transmittanceColor, thickness_env, _TransScaleBiasEnv.xy, irradiance_SH, _T_LUT_Trans, SamplerState_Linear_Clamp);
+                // specular env
+                float3 brdf_specular_env = EnvBRDF(0.028, roughness, NoV);
+                float mipmapLevelLod = PerceptualRoughnessToMipmapLevel(a);
+                float3 reflectDir = reflect(-camDir, normalWS_high);
+                float3 irradiance_IBL = SampleSkyTexture(reflectDir, mipmapLevelLod, 0);
+                float3 specular_env = brdf_specular_env * irradiance_IBL;
+
+                float3 lighting_DL = (diffuse + specular) + transmittance;
+                float3 lighting_env = (transmittance_env + specular_env) * ao + diffuse_env;
                 
-                float3 col = (diffuse + specular) * rmo.b + transmittance;
+                float3 col = lighting_DL + lighting_env;
+                col = lighting_DL;
                 return half4(col, 1);
             }
             ENDHLSL

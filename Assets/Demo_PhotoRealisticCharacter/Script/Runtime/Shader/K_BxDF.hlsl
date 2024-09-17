@@ -115,7 +115,7 @@
 	float Vis_Schlick( float a2, float NoV, float NoL )
 	{
 		float k = sqrt(a2) * 0.5;
-		float Vis_SchlickV = NoV * (1 - k) + k;
+		float Vis_SchlickV = NoV * (1 - k) + k; // = lerp(NoV, 1, k)
 		float Vis_SchlickL = NoL * (1 - k) + k;
 		return 0.25 / ( Vis_SchlickV * Vis_SchlickL );
 	}
