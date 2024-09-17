@@ -2,7 +2,7 @@ Shader "PRC/Eyes"
 {
     Properties
     {
-        [Header(Base Map)]
+        [Header(Iris Base Map)]
         [Space(10)]
         _T_BaseColor ("Texture", 2D) = "white" {}
         _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
@@ -18,12 +18,25 @@ Shader "PRC/Eyes"
 
         _T_DetailNormal ("Detail Normal Map", 2D) = "bump" {}
         _DetailNormalScale_K ("Detail Normal Scale", Range(0,10)) = 1
+        _T_Height ("Height Map", 2D) = "black" {}
+        _HeightScale ("Height Scale", Range(-1, 1)) = 0.1
         [Space(20)]
 
-        PreIntegratedGF ("LUT Integrate BRDF", 2D) = "white" {}
-        
+        [Header(OUTER LAYER Fibrous Tunic)]
+        [Space(10)]
+        _T_Normal_Outer ("Normal Map", 2D) = "bump" {}
+        _NormalScale_Outer ("Normal Scale", Range(0,5)) = 1
+        _T_Rmom_Outer ("RMO", 2D) = "white" {}
+        _RoughnessScale_Outer ("Roughness Scale", Range(0, 1.5)) = 1
+        _MetallicScale_Outer ("Metallic Scale", Range(0, 1.5)) = 1
+        _AOScale_Outer ("AO Scale", Range(0, 1.5)) = 1
+        [Space(20)]
+
+        [Header(Rendering Feature)]
+        [Space(10)]
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
         [Toggle(DETAIL_NORMAL_K)] _DetailNormal_K ("Enable Detail Normal", Float) = 1
+        [Toggle(SCLERA_SSS)] _ScleraSSS ("Enable Sclera SSS", Float) = 1
         [Space(20)]
 
         _Test ("Test", Vector) = (1,1,1,1)
@@ -217,6 +230,7 @@ Shader "PRC/Eyes"
             #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
             #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
             #pragma multi_compile_fragment DETAIL_NORMAL_K _
+            #pragma multi_compile_fragment SCLERA_SSS _
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -224,6 +238,7 @@ Shader "PRC/Eyes"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
 
 
             #define DIRECTIONAL_SHADOW_HIGH
@@ -252,7 +267,11 @@ Shader "PRC/Eyes"
             TEXTURE2D(_T_BaseColor);
             TEXTURE2D(_T_Normal);
             TEXTURE2D(_T_DetailNormal);
+            TEXTURE2D(_T_Height);
             TEXTURE2D(_T_Rmo);
+
+            TEXTURE2D(_T_Normal_Outer);
+            TEXTURE2D(_T_Rmom_Outer);
 
             float _WrapLighting;
             float _RoughnessScale;
@@ -260,9 +279,16 @@ Shader "PRC/Eyes"
             float _AOScale;
             float _NormalScale_K;
             float _DetailNormalScale_K;
+            float _HeightScale;
             float4 _Test;
 
+            float _NormalScale_Outer;
+            float _RoughnessScale_Outer;
+            float _MetallicScale_Outer;
+            float _AOScale_Outer;
+
             #include "K_Lighting.hlsl"
+            #include "Eyes.hlsl"
 
             Varyings vert (Attributes IN)
             {
@@ -277,36 +303,43 @@ Shader "PRC/Eyes"
 
             half4 frag (Varyings IN) : SV_Target
             {   
-                // TEX 
-                float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, IN.uv).rgb;
-                float4 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, IN.uv);
-                float roughness = lerp(0.001, 1.0, rmo.r * _RoughnessScale);
-                float metallic = lerp(0.1, 1.0, rmo.g * _MetallicScale);
-                float ao = lerp(0.01, 1.0, rmo.b * _AOScale);
-
-                // normal 
-                float3 normalTS_high = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, IN.uv, 0));
-                normalTS_high.xy *= _NormalScale_K;
-                normalTS_high.z = sqrt(1 - saturate(dot(normalTS_high.xy, normalTS_high.xy)));
-
-                float a = roughness * roughness;
-                float a2 = a*a;
-                float3 F0 = lerp(0.04, baseColor, metallic);
-                float mipmapLevelLod = PerceptualRoughnessToMipmapLevel(a);
-
                 // NormalTS to NormalWS
                 float3 bitangentWS = cross(IN.normalWS, IN.tangentWS.xyz) * IN.tangentWS.w;
                 float3x3 m_worldToTangent = float3x3(IN.tangentWS.xyz, bitangentWS.xyz, IN.normalWS.xyz);
                 float3x3 m_tangentToWorld = transpose(m_worldToTangent);
+
+                // precision problems 
+                //float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
+                float height = SAMPLE_TEXTURE2D(_T_Height, SamplerState_Linear_Repeat, IN.uv).r;
+                float3 camDir = mul(transpose(UNITY_MATRIX_V), float3(0,0,1));
+                float3 camDirTS = mul(m_worldToTangent, camDir);
+                float2 parallaxOffset = ParallaxOffset_K(height, _HeightScale, camDirTS);
+                float2 uv_parallax = IN.uv + parallaxOffset;
+
+                // TEX - iris
+                float4 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, uv_parallax);
+                float roughness = lerp(0.01, 1.0, rmo.r * _RoughnessScale);
+                float metallic = lerp(0.01, 1.0, rmo.g * _MetallicScale);
+                float ao = lerp(0.01, 1.0, rmo.b * _AOScale);
+
+                // normal - iris
+                float3 normalTS_high = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, uv_parallax, 0));
+                normalTS_high.xy *= _NormalScale_K;
+                normalTS_high.z = sqrt(1 - saturate(dot(normalTS_high.xy, normalTS_high.xy)));
                 float3 normalWS_high = mul(m_tangentToWorld, normalTS_high);
                 float3 normalWS_geom = IN.normalWS;
 
+                float a = roughness * roughness;
+                float a2 = a*a;
+                float mipmapLevelLod = PerceptualRoughnessToMipmapLevel(a);
+
                 // PRE
-                DirectionalLightData lightData = _DirectionalLightDatas[0];
+                DirectionalLightData lightData = _DirectionalLightDatas[0];                
+
+                float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, uv_parallax).rgb;
+                float3 F0 = lerp(0.04, baseColor, metallic);
+
                 float3 lightDir = -normalize(lightData.forward);
-                // precision problems 
-                //float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
-                float3 camDir = mul(transpose(UNITY_MATRIX_V), float3(0,0,1));
                 float3 H = normalize(camDir + lightDir);
 
                 float NoLUnclamped = dot(normalWS_high, lightDir);
@@ -326,37 +359,69 @@ Shader "PRC/Eyes"
                     float shadow = 1;
                 #endif
 
-                // lighting 
-                // directional light 
-                float3 irradiance_diffuse = (NoLUnclamped + _WrapLighting) / (1 + _WrapLighting) * lightData.color * shadow;
-                float3 irradiance_specular = NoL * lightData.color * shadow;
-                float3 brdf_diffuse = Diffuse_Lambert(baseColor);
+                // IRIS SHADING - START // 
+                // directional light - specular // 
+                // brdf 
+                float D_specular_iris = NDF_GGX(a2, NoH);
+                float3 F_specular_iris = Fresnel_Schlick_Fitting(F0, VoH);
+                float V_specular_iris = Vis_Schlick(a2, NoV, NoL);
+                float3 specularBRDF_iris = D_specular_iris * F_specular_iris * V_specular_iris;
+
+                float3 directionalSpecularIrradiance_iris = NoL * lightData.color * shadow;
+
+                float3 directinalSpecular_iris = specularBRDF_iris * directionalSpecularIrradiance_iris;
+
+                // directional light - diffuse // 
+                #if defined(SCLERA_SSS)
+                    float n = 3.0;
+                    float3 directionalDiffuseIrradiance_iris = pow((NoL + _WrapLighting) / (1 + _WrapLighting), n) * (n + 1) / (2 * (1 + _WrapLighting)) * lightData.color * shadow;
+                #else
+                    float3 directionalDiffuseIrradiance_iris = NoL * lightData.color * shadow;
+                #endif 
+
+                float3 diffuseBRDF_iris = Diffuse_Lambert(baseColor);
+
+                float3 directionalDiffuse_iris = diffuseBRDF_iris * directionalDiffuseIrradiance_iris * (1-F_specular_iris);
+
+                // directional light shading // 
+                float3 directionalShading_iris = directionalDiffuse_iris /* + directinalSpecular_iris */;
+
+                // env lighting - diffuse // 
+                float3 envSH_iris = EvaluateLightProbe(normalWS_high);
+                float3 envDiffuse_iris = diffuseBRDF_iris * envSH_iris * (1-Fresnel_Schlick(F0, NoV)) * ao;
+                // environment shading //
+                float3 envShading_iris = envDiffuse_iris /* + envSpecular_iris */;
+
+                float3 shading_iris = directionalShading_iris + envShading_iris;
+                // IRIS SHADING - END //
+
+
+                // OUTER LAYER SHADING - START //
+                // normal - outer 
+                float3 normalTS_outer = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Outer, SamplerState_Linear_Repeat, IN.uv, 0));
+                normalTS_outer.xy *= _NormalScale_Outer;
+                normalTS_outer.z = sqrt(1 - saturate(dot(normalTS_outer.xy, normalTS_outer.xy)));
+                float3 normalWS_outer = mul(m_tangentToWorld, normalTS_outer);
+                // Tex - outer
+                float3 rmom_outer = SAMPLE_TEXTURE2D(_T_Rmom_Outer, SamplerState_Linear_Repeat, IN.uv);
+                float roughness_outer = lerp(0.01, 1.0, rmom_outer.r * _RoughnessScale_Outer);
+                float metallic_outer = lerp(0.01, 1.0, rmom_outer.g * _MetallicScale_Outer);
+                float ao_outer = lerp(0.01, 1.0, rmom_outer.b * _AOScale_Outer);
+                float a_outer = roughness_outer * roughness_outer;
+                // Pre - outer 
+                float NoV_outer = saturate(dot(normalWS_outer, camDir));
+                float3 reflectDir_outer = reflect(-camDir, normalWS_outer);
+
+                // env lighting - specular // 
+                float mipmapLevelLod_outer = PerceptualRoughnessToMipmapLevel(a_outer);
+                float3 envSpecularBRDF_outer = EnvBRDF(0.04, roughness_outer, NoV_outer);
+                float3 envIBL_outer = SampleSkyTexture(reflectDir_outer, mipmapLevelLod_outer, 0);
+                float3 envShading_outer = (envSpecularBRDF_outer * envIBL_outer) * ao_outer;
+
+                float3 shading_outer = envShading_outer;
+                // OUTER LAYER SHADING - END //
                 
-                float D_specular = NDF_GGX(a2, NoH);
-                float3 F_specular = Fresnel_Schlick_Fitting(F0, VoH);
-                float V_specular = Vis_Schlick(a2, NoV, NoL);
-                float3 brdf_specular = D_specular * F_specular * V_specular;
-
-                float3 diffuse_DL = brdf_diffuse * irradiance_diffuse * (1-F_specular);
-                float3 specular_DL = brdf_specular * irradiance_specular;
-
-                // environment 
-                // env specular
-                float3 reflectDir = reflect(-camDir, normalWS_high);
-                float3 brdf_specular_env = EnvBRDF(F0, roughness, NoV);
-                float3 irradiance_IBL = SampleSkyTexture(reflectDir, mipmapLevelLod, 0);
-                float3 specular_env = brdf_specular_env * irradiance_IBL * ao;
-                // env diffuse 
-                float3 irradiance_SH = EvaluateLightProbe(normalWS_geom);
-                float3 F_specular_env = Fresnel_Schlick_Fitting(F0, NoV);
-                float3 diffuse_env = brdf_diffuse * irradiance_SH * (1-F_specular_env) * ao;
-
-                float3 diffuse = diffuse_DL + diffuse_env;
-                float3 specular = specular_DL + specular_env;
-                
-                float3 col = diffuse_DL + specular_DL;
-                col = diffuse + specular;
-                col = irradiance_IBL;
+                float3 col = shading_iris + shading_outer;
                 return half4(col, 1);
             }
             ENDHLSL
