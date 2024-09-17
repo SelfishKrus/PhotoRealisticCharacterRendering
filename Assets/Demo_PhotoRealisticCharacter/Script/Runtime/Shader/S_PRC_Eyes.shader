@@ -20,9 +20,10 @@ Shader "PRC/Eyes"
         _DetailNormalScale_K ("Detail Normal Scale", Range(0,10)) = 1
         _T_Height ("Height Map", 2D) = "black" {}
         _HeightScale ("Height Scale", Float) = 1
+        _IrisMask ("Iris Mask From Sclera", Range(-1, 1)) = -0.65
         [Space(20)]
 
-        [Header(OUTER LAYER Fibrous Tunic)]
+        [Header(Sclera)]
         [Space(10)]
         _T_Normal_Outer ("Normal Map", 2D) = "bump" {}
         _NormalScale_Outer ("Normal Scale", Range(0,5)) = 1
@@ -280,6 +281,7 @@ Shader "PRC/Eyes"
             float _NormalScale_K;
             float _DetailNormalScale_K;
             float _HeightScale;
+            float _IrisMask;
             float4 _Test;
 
             float _NormalScale_Outer;
@@ -318,7 +320,7 @@ Shader "PRC/Eyes"
                 //float2 parallaxOffset = ParallaxOffset_K(height, _HeightScale, camDirTS);
 
                 float2 offsetTS = ParallaxOffset_PhysicallyBased(float3(1,0,0), IN.normalWS, camDirWS, height, UNITY_MATRIX_M, m_worldToTangent);
-                float mask = 1 - CircleSDF(IN.uv, float2(0.5, 0.5), _Test.x);
+                float mask = 1 - CircleSDF(IN.uv, float2(0.5, 0.5), _IrisMask);
                 float2 uv_parallax = IN.uv + mask * offsetTS;
 
                 float3 res = uv_parallax.xyy;
