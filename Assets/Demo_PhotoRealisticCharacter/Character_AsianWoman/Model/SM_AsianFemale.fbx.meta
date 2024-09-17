@@ -33,7 +33,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: eye_shadow
-    second: {fileID: 2100000, guid: c5ed6f71fdc6f5b42a609431585fc7d1, type: 2}
+    second: {fileID: 2100000, guid: 736a2b4cdf02061468ac63c6569376b4, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -68,7 +68,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: tearline
-    second: {fileID: 2100000, guid: ef8eb7fd5674ff14fb2ad9003d5c135c, type: 2}
+    second: {fileID: 2100000, guid: d315e74613ff4a648a940353c10775a3, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

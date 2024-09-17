@@ -193,7 +193,7 @@ Material:
     - _AlphaSrcBlend: 1
     - _AlphaTest: 0
     - _Anisotropy: 0
-    - _AoScale: 1
+    - _AoScale: 0
     - _BlendMode: 0
     - _BumpScale: 1
     - _CoatMask: 0
@@ -269,7 +269,7 @@ Material:
     - _RefractionModel: 0
     - _RenderQueueType: 1
     - _RequireSplitLighting: 0
-    - _RoughnessScale: 0.482
+    - _RoughnessScale: 0
     - _Smoothness: 0.14142135
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
