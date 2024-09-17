@@ -95,10 +95,10 @@ Material:
     - _WrapRGB: 0
     m_Colors:
     - _CurvatureScaleBias: {r: 1.5, g: 0.15, b: 0, a: 0}
-    - _Test: {r: 8.55, g: 0, b: 0, a: 0}
+    - _Test: {r: 1, g: 0, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: -0.08, b: 0, a: 0}
     - _TransScaleBiasEnv: {r: 1, g: 0, b: 0, a: 0}
-    - _TransmittanceTint: {r: 0.59119487, g: 0.30608007, b: 0.20264216, a: 1}
+    - _TransmittanceTint: {r: 0.7798742, g: 0.22534402, b: 0.12997895, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
     - _WrapLighting: {r: 0.27044016, g: 0.27044016, b: 0.27044016, a: 1}
   m_BuildTextureStacks: []

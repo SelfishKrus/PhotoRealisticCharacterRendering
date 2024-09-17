@@ -322,7 +322,7 @@ Shader "PRC/Skin_PISSS"
             {   
                 // TEX 
                 float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, IN.uv).rgb;
-                float3 transmittanceColor = _TransmittanceTint;
+                float3 transmittanceColor = max(_TransmittanceTint, _TransmittanceTint * baseColor);
                 float4 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, IN.uv);
                 float ao = lerp(0, 1, rmo.b * _AOScale);
 
