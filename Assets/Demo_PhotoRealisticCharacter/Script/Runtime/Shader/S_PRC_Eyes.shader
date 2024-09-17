@@ -11,9 +11,9 @@ Shader "PRC/Eyes"
         [Space(20)]
 
         _T_Rmo ("RMO", 2D) = "white" {} 
-        _RoughnessScale ("Roughness Scale", Range(0, 1.5)) = 1
-        _MetallicScale ("Metallic Scale", Range(0, 1.5)) = 1
-        _AOScale ("AO Scale", Range(0, 1.5)) = 1
+        _RoughnessScale ("Roughness Scale", Range(0, 3)) = 1
+        _MetallicScale ("Metallic Scale", Range(0, 3)) = 1
+        _AOScale ("AO Scale", Range(0, 3)) = 1
         [Space(20)]
 
         _T_DetailNormal ("Detail Normal Map", 2D) = "bump" {}
@@ -310,8 +310,8 @@ Shader "PRC/Eyes"
 
                 // precision problems 
                 //float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
-                float height = SAMPLE_TEXTURE2D(_T_Height, SamplerState_Linear_Repeat, IN.uv).r;
                 float3 camDir = mul(transpose(UNITY_MATRIX_V), float3(0,0,1));
+                float height = SAMPLE_TEXTURE2D(_T_Height, SamplerState_Linear_Repeat, IN.uv).r;
                 float3 camDirTS = mul(m_worldToTangent, camDir);
                 float2 parallaxOffset = ParallaxOffset_K(height, _HeightScale, camDirTS);
                 float2 uv_parallax = IN.uv + parallaxOffset;
@@ -360,17 +360,6 @@ Shader "PRC/Eyes"
                 #endif
 
                 // IRIS SHADING - START // 
-                // directional light - specular // 
-                // brdf 
-                float D_specular_iris = NDF_GGX(a2, NoH);
-                float3 F_specular_iris = Fresnel_Schlick_Fitting(F0, VoH);
-                float V_specular_iris = Vis_Schlick(a2, NoV, NoL);
-                float3 specularBRDF_iris = D_specular_iris * F_specular_iris * V_specular_iris;
-
-                float3 directionalSpecularIrradiance_iris = NoL * lightData.color * shadow;
-
-                float3 directinalSpecular_iris = specularBRDF_iris * directionalSpecularIrradiance_iris;
-
                 // directional light - diffuse // 
                 #if defined(SCLERA_SSS)
                     float n = 3.0;
@@ -381,16 +370,16 @@ Shader "PRC/Eyes"
 
                 float3 diffuseBRDF_iris = Diffuse_Lambert(baseColor);
 
-                float3 directionalDiffuse_iris = diffuseBRDF_iris * directionalDiffuseIrradiance_iris * (1-F_specular_iris);
+                float3 directionalDiffuse_iris = diffuseBRDF_iris * directionalDiffuseIrradiance_iris;
 
                 // directional light shading // 
-                float3 directionalShading_iris = directionalDiffuse_iris /* + directinalSpecular_iris */;
+                float3 directionalShading_iris = directionalDiffuse_iris;
 
                 // env lighting - diffuse // 
                 float3 envSH_iris = EvaluateLightProbe(normalWS_high);
                 float3 envDiffuse_iris = diffuseBRDF_iris * envSH_iris * (1-Fresnel_Schlick(F0, NoV)) * ao;
                 // environment shading //
-                float3 envShading_iris = envDiffuse_iris /* + envSpecular_iris */;
+                float3 envShading_iris = envDiffuse_iris;
 
                 float3 shading_iris = directionalShading_iris + envShading_iris;
                 // IRIS SHADING - END //
@@ -398,7 +387,7 @@ Shader "PRC/Eyes"
 
                 // OUTER LAYER SHADING - START //
                 // normal - outer 
-                float3 normalTS_outer = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Outer, SamplerState_Linear_Repeat, IN.uv, 0));
+                float3 normalTS_outer = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Outer, SamplerState_Linear_Repeat, uv_parallax, 0));
                 normalTS_outer.xy *= _NormalScale_Outer;
                 normalTS_outer.z = sqrt(1 - saturate(dot(normalTS_outer.xy, normalTS_outer.xy)));
                 float3 normalWS_outer = mul(m_tangentToWorld, normalTS_outer);
@@ -408,20 +397,34 @@ Shader "PRC/Eyes"
                 float metallic_outer = lerp(0.01, 1.0, rmom_outer.g * _MetallicScale_Outer);
                 float ao_outer = lerp(0.01, 1.0, rmom_outer.b * _AOScale_Outer);
                 float a_outer = roughness_outer * roughness_outer;
+                float a2_outer = a_outer * a_outer;
                 // Pre - outer 
                 float NoV_outer = saturate(dot(normalWS_outer, camDir));
+                float NoH_outer = saturate(dot(normalWS_outer, H));
+                float NoL_outer = saturate(dot(normalWS_outer, lightDir));
                 float3 reflectDir_outer = reflect(-camDir, normalWS_outer);
+
+                // directional lighting - specular // 
+                float D_specular_outer = NDF_GGX(a2_outer, NoH_outer);
+                float3 F_specular_outer = Fresnel_Schlick_Fitting(F0, VoH);
+                float V_specular_outer = Vis_Schlick(a2_outer, NoV_outer, NoL_outer);
+                float3 specularBRDF_outer = D_specular_outer * F_specular_outer * V_specular_outer;
+
+                float3 directionalSpecularIrradiance_outer = NoL_outer * lightData.color * shadow;
+
+                float3 directinalSpecular_outer = specularBRDF_outer * directionalSpecularIrradiance_outer;
 
                 // env lighting - specular // 
                 float mipmapLevelLod_outer = PerceptualRoughnessToMipmapLevel(a_outer);
                 float3 envSpecularBRDF_outer = EnvBRDF(0.04, roughness_outer, NoV_outer);
                 float3 envIBL_outer = SampleSkyTexture(reflectDir_outer, mipmapLevelLod_outer, 0);
-                float3 envShading_outer = (envSpecularBRDF_outer * envIBL_outer) * ao_outer;
+                float3 envSpecular_outer = (envSpecularBRDF_outer * envIBL_outer) * ao_outer;
 
-                float3 shading_outer = envShading_outer;
+                float3 shading_outer = envSpecular_outer + directinalSpecular_outer;
                 // OUTER LAYER SHADING - END //
                 
                 float3 col = shading_iris + shading_outer;
+                //col = directinalSpecular_outer;
                 return half4(col, 1);
             }
             ENDHLSL
