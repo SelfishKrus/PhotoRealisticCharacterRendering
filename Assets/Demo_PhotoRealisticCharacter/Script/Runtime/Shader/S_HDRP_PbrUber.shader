@@ -150,6 +150,7 @@ Shader "Krus/S_HDRP_PbrUber"
     // LitShading.hlsl implements the light loop API.
     // LitData.hlsl is included here, LitShading.hlsl is included below for shading passes only.
 
+
     ENDHLSL
 
     SubShader
@@ -192,6 +193,46 @@ Shader "Krus/S_HDRP_PbrUber"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "META"
+            Tags{ "LightMode" = "META" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma shader_feature EDITOR_VISUALIZATION
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            // enable dithering LOD crossfade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+            // Lightmap memo
+            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
+            // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
+
+            #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+
+            // Use Unity's built-in matrices for meta pass rendering
+            #define SCENEPICKINGPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -304,7 +345,9 @@ Shader "Krus/S_HDRP_PbrUber"
                 // PRE
                 DirectionalLightData lightData = _DirectionalLightDatas[0];
                 float3 lightDir = -normalize(lightData.forward);
-                float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
+                // precision problems 
+                //float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
+                float3 camDir = mul(transpose(UNITY_MATRIX_V), float3(0,0,1));
                 float3 H = normalize(camDir + lightDir);
 
                 float NoLUnclamped = dot(normalWS_high, lightDir);
@@ -340,7 +383,7 @@ Shader "Krus/S_HDRP_PbrUber"
 
                 // environment 
                 // env specular
-                float3 reflectDir = reflect(-camDir, normalWS_geom);
+                float3 reflectDir = reflect(-camDir, normalWS_high);
                 float3 brdf_specular_env = EnvBRDF(F0, roughness, NoV);
                 float3 irradiance_IBL = SampleSkyTexture(reflectDir, mipmapLevelLod, 0);
                 float3 specular_env = brdf_specular_env * irradiance_IBL * ao;
