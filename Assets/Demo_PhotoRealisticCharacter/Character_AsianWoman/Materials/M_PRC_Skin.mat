@@ -39,7 +39,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _T_DetailNormal:
         m_Texture: {fileID: 2800000, guid: 2868740a63e609045b6881aeaf3fe643, type: 3}
-        m_Scale: {x: 10, y: 1}
+        m_Scale: {x: 20, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_LUT_Diffuse:
         m_Texture: {fileID: 8600000, guid: e242bacc2a42d7b459c5b599a21fdc28, type: 2}
@@ -74,7 +74,7 @@ Material:
     - _AOScale: 1
     - _Compare: 8
     - _DetailNormalScale: 1
-    - _DetailNormalScale_K: 1
+    - _DetailNormalScale_K: 2
     - _DetailNormal_K: 1
     - _DirectionalSpecularIntensity: 5
     - _DirectionalSpecularIrradianceBias: 0.725
@@ -98,7 +98,7 @@ Material:
     - _Test: {r: 8.55, g: 0, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: -0.08, b: 0, a: 0}
     - _TransScaleBiasEnv: {r: 1, g: 0, b: 0, a: 0}
-    - _TransmittanceTint: {r: 0.5597484, g: 0.01662619, b: 0, a: 1}
+    - _TransmittanceTint: {r: 0.59119487, g: 0.30608007, b: 0.20264216, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
     - _WrapLighting: {r: 0.27044016, g: 0.27044016, b: 0.27044016, a: 1}
   m_BuildTextureStacks: []

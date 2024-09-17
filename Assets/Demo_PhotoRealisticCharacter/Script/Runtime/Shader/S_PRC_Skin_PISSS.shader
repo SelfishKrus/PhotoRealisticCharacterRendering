@@ -322,7 +322,7 @@ Shader "PRC/Skin_PISSS"
             {   
                 // TEX 
                 float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, IN.uv).rgb;
-                float3 transmittanceColor = baseColor * _TransmittanceTint;
+                float3 transmittanceColor = _TransmittanceTint;
                 float4 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, IN.uv);
                 float ao = lerp(0, 1, rmo.b * _AOScale);
 
@@ -401,12 +401,13 @@ Shader "PRC/Skin_PISSS"
                 float mipmapLevelLod = PerceptualRoughnessToMipmapLevel(a);
                 float3 reflectDir = reflect(-camDir, normalWS_high);
                 float3 irradiance_IBL = SampleSkyTexture(reflectDir, mipmapLevelLod, 0);
-                float3 specular_env = brdf_specular_env * irradiance_IBL;
+                float3 specular_env = brdf_specular_env * irradiance_IBL * ao;
 
-                float3 lighting_DL = (diffuse + specular) + transmittance;
-                float3 lighting_env = (transmittance_env + specular_env) * ao + diffuse_env;
+                float3 lighting_DL = diffuse + specular + transmittance;
+                float3 lighting_env = transmittance_env + specular_env + diffuse_env;
                 
                 float3 col = lighting_DL + lighting_env;
+                //col = transmittance_env;
                 return half4(col, 1);
             }
             ENDHLSL
