@@ -19,7 +19,7 @@ Shader "PRC/Eyes"
         _T_DetailNormal ("Detail Normal Map", 2D) = "bump" {}
         _DetailNormalScale_K ("Detail Normal Scale", Range(0,10)) = 1
         _T_Height ("Height Map", 2D) = "black" {}
-        _HeightScale ("Height Scale", Range(-1, 1)) = 0.1
+        _HeightScale ("Height Scale", Float) = 1
         [Space(20)]
 
         [Header(OUTER LAYER Fibrous Tunic)]
@@ -305,16 +305,23 @@ Shader "PRC/Eyes"
             {   
                 // NormalTS to NormalWS
                 float3 bitangentWS = cross(IN.normalWS, IN.tangentWS.xyz) * IN.tangentWS.w;
-                float3x3 m_worldToTangent = float3x3(IN.tangentWS.xyz, bitangentWS.xyz, IN.normalWS.xyz);
-                float3x3 m_tangentToWorld = transpose(m_worldToTangent);
+                float4x4 m_worldToTangent = float4x4(float4(IN.tangentWS.xyz, 0), float4(bitangentWS.xyz, 0), float4(IN.normalWS.xyz, 0), float4(0,0,0,1));
+                float4x4 m_tangentToWorld = transpose(m_worldToTangent);
 
+                // parallax 
                 // precision problems 
-                //float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
-                float3 camDir = mul(transpose(UNITY_MATRIX_V), float3(0,0,1));
+                //float3 camDirWS = normalize(_WorldSpaceCameraPos - IN.posWS);
+                float3 camDirWS = mul(transpose(UNITY_MATRIX_V), float3(0,0,1));
                 float height = SAMPLE_TEXTURE2D(_T_Height, SamplerState_Linear_Repeat, IN.uv).r;
-                float3 camDirTS = mul(m_worldToTangent, camDir);
-                float2 parallaxOffset = ParallaxOffset_K(height, _HeightScale, camDirTS);
-                float2 uv_parallax = IN.uv + parallaxOffset;
+                height *= _HeightScale;
+                float3 camDirTS = mul(m_worldToTangent, camDirWS);
+                //float2 parallaxOffset = ParallaxOffset_K(height, _HeightScale, camDirTS);
+
+                float2 offsetTS = ParallaxOffset_PhysicallyBased(float3(1,0,0), IN.normalWS, camDirWS, height, UNITY_MATRIX_M, m_worldToTangent);
+                float mask = 1 - CircleSDF(IN.uv, float2(0.5, 0.5), _Test.x);
+                float2 uv_parallax = IN.uv + mask * offsetTS;
+
+                float3 res = uv_parallax.xyy;
 
                 // TEX - iris
                 float4 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, uv_parallax);
@@ -340,13 +347,13 @@ Shader "PRC/Eyes"
                 float3 F0 = lerp(0.04, baseColor, metallic);
 
                 float3 lightDir = -normalize(lightData.forward);
-                float3 H = normalize(camDir + lightDir);
+                float3 H = normalize(camDirWS + lightDir);
 
                 float NoLUnclamped = dot(normalWS_high, lightDir);
                 float NoL = saturate(NoLUnclamped);
                 float NoH = saturate(dot(normalWS_high, H));
-                float VoH = saturate(dot(camDir, H));
-                float NoV = saturate(dot(normalWS_high, camDir));
+                float VoH = saturate(dot(camDirWS, H));
+                float NoV = saturate(dot(normalWS_high, camDirWS));
 
                 // get directional light shadows 
                 float2 posSS = IN.pos / _ScreenParams.xy;
@@ -399,10 +406,10 @@ Shader "PRC/Eyes"
                 float a_outer = roughness_outer * roughness_outer;
                 float a2_outer = a_outer * a_outer;
                 // Pre - outer 
-                float NoV_outer = saturate(dot(normalWS_outer, camDir));
+                float NoV_outer = saturate(dot(normalWS_outer, camDirWS));
                 float NoH_outer = saturate(dot(normalWS_outer, H));
                 float NoL_outer = saturate(dot(normalWS_outer, lightDir));
-                float3 reflectDir_outer = reflect(-camDir, normalWS_outer);
+                float3 reflectDir_outer = reflect(-camDirWS, normalWS_outer);
 
                 // directional lighting - specular // 
                 float D_specular_outer = NDF_GGX(a2_outer, NoH_outer);
@@ -424,7 +431,6 @@ Shader "PRC/Eyes"
                 // OUTER LAYER SHADING - END //
                 
                 float3 col = shading_iris + shading_outer;
-                //col = directinalSpecular_outer;
                 return half4(col, 1);
             }
             ENDHLSL

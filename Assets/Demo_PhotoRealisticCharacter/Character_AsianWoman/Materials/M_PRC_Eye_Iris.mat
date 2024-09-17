@@ -105,7 +105,7 @@ Material:
     - _EyeSSS: 1
     - _Gloss: 0.645
     - _Glossiness: 0.625
-    - _HeightScale: -0.12
+    - _HeightScale: 20
     - _LowNormalLod: 6
     - _MetallicScale: 1
     - _MetallicScale_Outer: 1
@@ -128,7 +128,7 @@ Material:
     - _WrapRGB: 0
     m_Colors:
     - _CurvatureScaleBias: {r: 0.5, g: 0.35, b: 0, a: 0}
-    - _Test: {r: 3, g: 0, b: 0, a: 0}
+    - _Test: {r: -0.65, g: 1, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: -0.08, b: 0, a: 0}
     - _TransmittanceTint: {r: 0.5597484, g: 0.01662619, b: 0, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
