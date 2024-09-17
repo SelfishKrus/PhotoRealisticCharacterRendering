@@ -407,7 +407,6 @@ Shader "PRC/Skin_PISSS"
                 float3 lighting_env = (transmittance_env + specular_env) * ao + diffuse_env;
                 
                 float3 col = lighting_DL + lighting_env;
-                col = lighting_DL;
                 return half4(col, 1);
             }
             ENDHLSL
