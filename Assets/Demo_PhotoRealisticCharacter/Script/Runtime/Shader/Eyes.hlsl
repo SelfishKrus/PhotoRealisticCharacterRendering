@@ -9,6 +9,7 @@
     }
 
     // Real-Time Rendering book (Section 9.5. Refractions)
+    // IOR ranges from -1 to 1 otherwise artifacts will appear (don't know why)
     float3 GetEyeRefractDir(float IOR, float3 normal, float3 view)
     {
         float w = IOR * dot(normal, view);
