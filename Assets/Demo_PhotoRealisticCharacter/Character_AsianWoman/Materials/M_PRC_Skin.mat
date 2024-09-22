@@ -74,19 +74,19 @@ Material:
     - _AOScale: 1
     - _Compare: 8
     - _DetailNormalScale: 1
-    - _DetailNormalScale_K: 2
+    - _DetailNormalScale_K: 1
     - _DetailNormal_K: 1
-    - _DirectionalSpecularIntensity: 5
+    - _DirectionalSpecularIntensity: 6.5
     - _DirectionalSpecularIrradianceBias: 0.725
     - _Gloss: 0.645
     - _Glossiness: 0.625
     - _LowNormalLod: 6
-    - _MinThicknessNormalized: 0.0045
+    - _MinThicknessNormalized: 0.0075
     - _NormalScale: 0.65
     - _NormalScale_K: 0.7
     - _Pass: 2
     - _ReceiveDirectionalShadow: 1
-    - _RoughnessScale: 0.8
+    - _RoughnessScale: 1
     - _SpecularReflectance: 0.028
     - _StencilMask: 192
     - _StencilWriteMask: 192
@@ -95,9 +95,9 @@ Material:
     - _WrapRGB: 0
     m_Colors:
     - _CurvatureScaleBias: {r: 1.5, g: 0.15, b: 0, a: 0}
-    - _Test: {r: 1, g: 0, b: 0, a: 0}
-    - _TransScaleBias: {r: 1, g: -0.08, b: 0, a: 0}
-    - _TransScaleBiasEnv: {r: 1, g: 0, b: 0, a: 0}
+    - _Test: {r: 0.85, g: 0, b: 0, a: 0}
+    - _TransScaleBias: {r: 1, g: 0, b: 0, a: 0}
+    - _TransScaleBiasEnv: {r: 1, g: 0.08, b: 0, a: 0}
     - _TransmittanceTint: {r: 0.7798742, g: 0.22534402, b: 0.12997895, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
     - _WrapLighting: {r: 0.27044016, g: 0.27044016, b: 0.27044016, a: 1}
