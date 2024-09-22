@@ -1,11 +1,13 @@
 Shader "PRC/Eyes"
 {
     Properties
-    {
+    {   
         [Header(Iris Base Map)]
         [Space(10)]
         _T_BaseColor ("Texture", 2D) = "white" {}
+         _BaseColorTint ("Base Color Tint", Color) = (1,1,1,1)
         _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
+        _SSS_n ("SSS n", Float) = 3
         _T_Normal ("Normal Map", 2D) = "bump" {}
         _NormalScale_K ("Normal Scale", Range(-5,5)) = 1
         [Space(20)]
@@ -33,12 +35,24 @@ Shader "PRC/Eyes"
         _AOScale_Outer ("AO Scale", Range(0, 1.5)) = 1
         [Space(20)]
 
+        [Header(Limbus)]
+        [Space(10)]
+        _LimbusColor ("Limbus Color", Color) = (1,1,1,1)
+        _LimbusPos ("Limbus Position", Range(0, 1)) = 0.5
+        _LimbusSmoothness ("Limbus Smoothness", Range(0, 1)) = 0.5
+        [Space(20)]
+
+        [Header(Caustic)]
+        [Space(10)]
+        _CausticIntensity ("Intensity", Range(0, 5)) = 0.5
+
         [Header(Rendering Feature)]
         [Space(10)]
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
         [Toggle(DETAIL_NORMAL_K)] _DetailNormal_K ("Enable Detail Normal", Float) = 1
         [Toggle(SCLERA_SSS)] _ScleraSSS ("Enable Sclera SSS", Float) = 1
         [Toggle(IRIS_PARALLAX)] _IrisParallax ("Enable Iris Parallax", Float) = 1
+        [Toggle(IRIS_CAUSTIC)] _IrisCaustic ("Enable Iris Caustic", Float) = 1
         [Space(20)]
 
         _Test ("Test", Vector) = (1,1,1,1)
@@ -234,6 +248,8 @@ Shader "PRC/Eyes"
             #pragma multi_compile_fragment DETAIL_NORMAL_K _
             #pragma multi_compile_fragment SCLERA_SSS _
             #pragma multi_compile_fragment IRIS_PARALLAX _
+            #pragma multi_compile_fragment _DISABLE_SSR _
+            #pragma multi_compile_fragment IRIS_CAUSTIC _
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -242,7 +258,6 @@ Shader "PRC/Eyes"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ParallaxMapping.hlsl"
-
 
             #define DIRECTIONAL_SHADOW_HIGH
 
@@ -276,6 +291,7 @@ Shader "PRC/Eyes"
             TEXTURE2D(_T_Normal_Outer);
             TEXTURE2D(_T_Rmom_Outer);
 
+            float3 _BaseColorTint;
             float _WrapLighting;
             float _RoughnessScale;
             float _MetallicScale;
@@ -290,6 +306,14 @@ Shader "PRC/Eyes"
             float _RoughnessScale_Outer;
             float _MetallicScale_Outer;
             float _AOScale_Outer;
+
+            float _SSS_n;
+
+            float3 _LimbusColor;
+            float _LimbusPos;
+            float _LimbusSmoothness;
+
+            float _CausticIntensity;
 
             #include "K_Lighting.hlsl"
             #include "Eyes.hlsl"
@@ -311,18 +335,24 @@ Shader "PRC/Eyes"
                 float3 bitangentWS = cross(IN.normalWS, IN.tangentWS.xyz) * IN.tangentWS.w;
                 float4x4 m_worldToTangent = float4x4(float4(IN.tangentWS.xyz, 0), float4(bitangentWS.xyz, 0), float4(IN.normalWS.xyz, 0), float4(0,0,0,1));
                 float4x4 m_tangentToWorld = transpose(m_worldToTangent);
+                
+                float3 posOS = TransformWorldToObject(IN.posWS);
 
                 // parallax 
                 // precision problems 
-                //float3 camDirWS = normalize(_WorldSpaceCameraPos - IN.posWS);
-                float3 camDirWS = mul(transpose(UNITY_MATRIX_V), float3(0,0,1));
+                // float3 camDirWS = normalize(_WorldSpaceCameraPos.xyz - IN.posWS.xyz);
+                // float3 camDirWS = mul(transpose(UNITY_MATRIX_V), float3(0,0,1));
+                float3 camDirWS = GetWorldSpaceNormalizeViewDir(IN.posWS);
+                float3 camDirOS = TransformWorldToObjectDir(camDirWS);
                 float height = SAMPLE_TEXTURE2D(_T_Height, SamplerState_Linear_Repeat, IN.uv).r;
                 height *= _HeightScale;
+                
+                float3 eyeMask = ComputeEyeMask(IN.uv, float2(0.5, 0.5), _LimbusPos, _LimbusSmoothness);
 
                 #if defined(IRIS_PARALLAX)
                     float2 offsetTS = ParallaxOffset_PhysicallyBased(float3(1,0,0), IN.normalWS, camDirWS, height, UNITY_MATRIX_M, m_worldToTangent);
-                    float mask = 1 - CircleSDF(IN.uv, float2(0.5, 0.5), _IrisMask);
-                    float2 uv_parallax = IN.uv + mask * offsetTS;
+                    float parallaxMask = (1-eyeMask.b);
+                    float2 uv_parallax = IN.uv + float2(parallaxMask, parallaxMask) * offsetTS;
                 #else 
                     float2 uv_parallax = IN.uv;
                 #endif
@@ -339,6 +369,7 @@ Shader "PRC/Eyes"
                 normalTS_high.z = sqrt(1 - saturate(dot(normalTS_high.xy, normalTS_high.xy)));
                 float3 normalWS_high = mul(m_tangentToWorld, normalTS_high);
                 float3 normalWS_geom = IN.normalWS;
+                float3 normalOS_geom = TransformWorldToObjectDir(IN.normalWS);
 
                 float a = roughness * roughness;
                 float a2 = a*a;
@@ -347,13 +378,14 @@ Shader "PRC/Eyes"
                 // PRE
                 DirectionalLightData lightData = _DirectionalLightDatas[0];                
 
-                float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, uv_parallax).rgb;
+                float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, uv_parallax).rgb * _BaseColorTint;
                 float3 F0 = lerp(0.04, baseColor, metallic);
 
-                float3 lightDir = -normalize(lightData.forward);
-                float3 H = normalize(camDirWS + lightDir);
+                float3 lightDirWS = -normalize(lightData.forward);
+                float3 lightDirOS = TransformWorldToObjectDir(lightDirWS);
+                float3 H = normalize(camDirWS + lightDirWS);
 
-                float NoLUnclamped = dot(normalWS_high, lightDir);
+                float NoLUnclamped = dot(normalWS_high, lightDirWS);
                 float NoL = saturate(NoLUnclamped);
                 float NoH = saturate(dot(normalWS_high, H));
                 float VoH = saturate(dot(camDirWS, H));
@@ -365,18 +397,29 @@ Shader "PRC/Eyes"
                 #if defined(RECEIVE_DIRECTIONAL_SHADOW)
                     float shadow = GetDirectionalShadowAttenuation(shadowContext,
 					                    posSS, IN.posWS, normalWS_geom,
-					                    lightData.shadowIndex, lightDir);
+					                    lightData.shadowIndex, lightDirWS);
                 #else 
                     float shadow = 1;
                 #endif
 
+                // LIMBUS - START //
+                float limbusMask = eyeMask.g;
+                baseColor = lerp(baseColor, _LimbusColor * baseColor, limbusMask);
+                // LIMBUS - END // 
+
+
                 // IRIS SHADING - START // 
                 // directional light - diffuse // 
                 #if defined(SCLERA_SSS)
-                    float n = 3.0;
+                    float n = _SSS_n;
                     float3 directionalDiffuseIrradiance_iris = pow((NoL + _WrapLighting) / (1 + _WrapLighting), n) * (n + 1) / (2 * (1 + _WrapLighting)) * lightData.color * shadow;
                 #else
                     float3 directionalDiffuseIrradiance_iris = NoL * lightData.color * shadow;
+                #endif 
+
+                // caustic 
+                #if defined(IRIS_CAUSTIC)
+                    directionalDiffuseIrradiance_iris *= 1.0 + _CausticIntensity * ComputeCaustic(camDirWS, normalWS_high, lightDirWS, eyeMask);
                 #endif 
 
                 float3 diffuseBRDF_iris = Diffuse_Lambert(baseColor);
@@ -385,6 +428,14 @@ Shader "PRC/Eyes"
 
                 // directional light shading // 
                 float3 directionalShading_iris = directionalDiffuse_iris;
+
+                // env lighting - specular //
+                // float3 reflectDir = reflect(-camDirWS, normalWS_high);
+                // float3 envSpecularBRDF_iris = EnvBRDF(0.04, roughness, NoV);
+                // float3 envIBL_iris = SampleSkyTexture(reflectDir, mipmapLevelLod, 0);
+
+                // float3 envSpecular_iris = envSpecularBRDF_iris * envIBL_iris * ao;
+
 
                 // env lighting - diffuse // 
                 float3 envSH_iris = EvaluateLightProbe(normalWS_high);
@@ -412,7 +463,7 @@ Shader "PRC/Eyes"
                 // Pre - outer 
                 float NoV_outer = saturate(dot(normalWS_outer, camDirWS));
                 float NoH_outer = saturate(dot(normalWS_outer, H));
-                float NoL_outer = saturate(dot(normalWS_outer, lightDir));
+                float NoL_outer = saturate(dot(normalWS_outer, lightDirWS));
                 float3 reflectDir_outer = reflect(-camDirWS, normalWS_outer);
 
                 // directional lighting - specular // 
@@ -433,7 +484,7 @@ Shader "PRC/Eyes"
 
                 float3 shading_outer = envSpecular_outer + directinalSpecular_outer;
                 // OUTER LAYER SHADING - END //
-                
+
                 float3 col = shading_iris + shading_outer;
                 return half4(col, 1);
             }

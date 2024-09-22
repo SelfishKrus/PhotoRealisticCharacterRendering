@@ -12,7 +12,9 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - IRIS_CAUSTIC
   - IRIS_PARALLAX
+  - RECEIVE_DIRECTIONAL_SHADOW
   - SCLERA_SSS
   m_InvalidKeywords:
   - EYE_SSS
@@ -96,8 +98,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AOScale: 0.5
+    - _AOScale: 1
     - _AOScale_Outer: 1
+    - _CausticContrast: 3.3
+    - _CausticIntensity: 1
     - _Compare: 8
     - _CorneaRoughness: 0.05
     - _DetailNormalScale: 1
@@ -106,21 +110,25 @@ Material:
     - _EyeSSS: 1
     - _Gloss: 0.645
     - _Glossiness: 0.625
-    - _HeightScale: 20
+    - _HeightScale: 0.34
+    - _IrisCaustic: 1
     - _IrisMask: -0.675
     - _IrisParallax: 1
+    - _LimbusPos: 0.211
+    - _LimbusSmoothness: 0.055
     - _LowNormalLod: 6
     - _MetallicScale: 1
     - _MetallicScale_Outer: 1
     - _MinThicknessNormalized: 0.0045
     - _NormalScale: 0.65
     - _NormalScale_K: 1
-    - _NormalScale_Outer: 0.71
+    - _NormalScale_Outer: 0.25
     - _NormalScale_Sclera: 1
     - _Pass: 2
-    - _ReceiveDirectionalShadow: 0
-    - _RoughnessScale: 1
+    - _ReceiveDirectionalShadow: 1
+    - _RoughnessScale: 0.326
     - _RoughnessScale_Outer: 1
+    - _SSS_n: 3
     - _ScleraSSS: 1
     - _SpecularReflectance: 0.028
     - _StencilMask: 192
@@ -130,8 +138,11 @@ Material:
     - _WrapR: 0
     - _WrapRGB: 0
     m_Colors:
+    - _BaseColorTint: {r: 1, g: 1, b: 1, a: 1}
+    - _CausticNormalOffset: {r: -0.68, g: 0, b: 0, a: 0}
     - _CurvatureScaleBias: {r: 0.5, g: 0.35, b: 0, a: 0}
-    - _Test: {r: -1, g: 1, b: 0, a: 0}
+    - _LimbusColor: {r: 0.09380558, g: 0.3207547, b: 0.26433212, a: 1}
+    - _Test: {r: -0.28, g: -0.27, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: -0.08, b: 0, a: 0}
     - _TransmittanceTint: {r: 0.5597484, g: 0.01662619, b: 0, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
