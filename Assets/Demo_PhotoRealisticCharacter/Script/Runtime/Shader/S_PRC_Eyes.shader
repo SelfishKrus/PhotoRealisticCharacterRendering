@@ -2,37 +2,38 @@ Shader "PRC/Eyes"
 {
     Properties
     {   
-        [Header(Iris Base Map)]
+        [Header(Sclera)]
         [Space(10)]
-        _T_BaseColor ("Texture", 2D) = "white" {}
-         _BaseColorTint ("Base Color Tint", Color) = (1,1,1,1)
-        _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
-        _SSS_n ("SSS n", Float) = 3
-        _T_Normal ("Normal Map", 2D) = "bump" {}
+        _T_Sclera_BaseColor ("Sclera Base Color", 2D) = "white" {}
+        _BaseColorTint_Sclera ("Base Color Tint", Color) = (1,1,1,1)
+        _T_Sclera_Normal ("Normal Map", 2D) = "bump" {}
         _NormalScale_K ("Normal Scale", Range(-5,5)) = 1
-        [Space(20)]
 
-        _T_Rmo ("RMO", 2D) = "white" {} 
+        _T_RMOM_Sclera ("RMO", 2D) = "white" {} 
         _RoughnessScale ("Roughness Scale", Range(0, 3)) = 1
         _MetallicScale ("Metallic Scale", Range(0, 3)) = 1
         _AOScale ("AO Scale", Range(0, 3)) = 1
-        [Space(20)]
 
-        _T_DetailNormal ("Detail Normal Map", 2D) = "bump" {}
-        _DetailNormalScale_K ("Detail Normal Scale", Range(0,10)) = 1
-        _T_Height ("Height Map", 2D) = "black" {}
-        _HeightScale ("Height Scale", Float) = 1
+        _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
+        _SSS_n ("SSS n", Float) = 3
         _IrisMask ("Iris Mask From Sclera", Range(-1, 1)) = -0.65
         [Space(20)]
 
-        [Header(Sclera)]
+        [Header(Iris)]
         [Space(10)]
-        _T_Normal_Outer ("Normal Map", 2D) = "bump" {}
-        _NormalScale_Outer ("Normal Scale", Range(0,5)) = 1
-        _T_Rmom_Outer ("RMO", 2D) = "white" {}
-        _RoughnessScale_Outer ("Roughness Scale", Range(0, 1.5)) = 1
+        _T_Iris_BaseColor ("Iris Base Color", 2D) = "white" {}
+        _BaseColorTint_Iris ("Base Color Tint", Color) = (1,1,1,1)
+
+        _T_Normal_Iris ("Normal Map", 2D) = "bump" {}
+        _NormalScale_Iris ("Normal Scale", Range(0,5)) = 1
+
+        _T_Rmom_Iris ("RMO", 2D) = "white" {}
+        _RoughnessScale_Iris ("Roughness Scale", Range(0, 1.5)) = 1
         _MetallicScale_Outer ("Metallic Scale", Range(0, 1.5)) = 1
         _AOScale_Outer ("AO Scale", Range(0, 1.5)) = 1
+
+        _T_Height ("Height Map", 2D) = "black" {}
+        _HeightScale ("Height Scale", Float) = 1
         [Space(20)]
 
         [Header(Limbus)]
@@ -282,28 +283,28 @@ Shader "PRC/Eyes"
 
             SAMPLER(SamplerState_Linear_Repeat);
             SAMPLER(SamplerState_Linear_Clamp);
-            TEXTURE2D(_T_BaseColor);
-            TEXTURE2D(_T_Normal);
-            TEXTURE2D(_T_DetailNormal);
+            TEXTURE2D(_T_Sclera_BaseColor);
+            TEXTURE2D(_T_Iris_BaseColor);
+            TEXTURE2D(_T_Sclera_Normal);
             TEXTURE2D(_T_Height);
-            TEXTURE2D(_T_Rmo);
+            TEXTURE2D(_T_RMOM_Sclera);
 
-            TEXTURE2D(_T_Normal_Outer);
-            TEXTURE2D(_T_Rmom_Outer);
+            TEXTURE2D(_T_Normal_Iris);
+            TEXTURE2D(_T_Rmom_Iris);
 
-            float3 _BaseColorTint;
+            float3 _BaseColorTint_Sclera;
+            float3 _BaseColorTint_Iris;
             float _WrapLighting;
             float _RoughnessScale;
             float _MetallicScale;
             float _AOScale;
             float _NormalScale_K;
-            float _DetailNormalScale_K;
             float _HeightScale;
             float _IrisMask;
             float4 _Test;
 
-            float _NormalScale_Outer;
-            float _RoughnessScale_Outer;
+            float _NormalScale_Iris;
+            float _RoughnessScale_Iris;
             float _MetallicScale_Outer;
             float _AOScale_Outer;
 
@@ -358,13 +359,13 @@ Shader "PRC/Eyes"
                 #endif
 
                 // TEX - iris
-                float4 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, uv_parallax);
+                float4 rmo = SAMPLE_TEXTURE2D(_T_RMOM_Sclera, SamplerState_Linear_Repeat, uv_parallax);
                 float roughness = lerp(0.01, 1.0, rmo.r * _RoughnessScale);
                 float metallic = lerp(0.01, 1.0, rmo.g * _MetallicScale);
                 float ao = lerp(0.01, 1.0, rmo.b * _AOScale);
 
                 // normal - iris
-                float3 normalTS_high = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, uv_parallax, 0));
+                float3 normalTS_high = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Sclera_Normal, SamplerState_Linear_Repeat, uv_parallax, 0));
                 normalTS_high.xy *= _NormalScale_K;
                 normalTS_high.z = sqrt(1 - saturate(dot(normalTS_high.xy, normalTS_high.xy)));
                 float3 normalWS_high = mul(m_tangentToWorld, normalTS_high);
@@ -378,7 +379,7 @@ Shader "PRC/Eyes"
                 // PRE
                 DirectionalLightData lightData = _DirectionalLightDatas[0];                
 
-                float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, uv_parallax).rgb * _BaseColorTint;
+                float3 baseColor = SAMPLE_TEXTURE2D(_T_Sclera_BaseColor, SamplerState_Linear_Repeat, uv_parallax).rgb * _BaseColorTint_Sclera;
                 float3 F0 = lerp(0.04, baseColor, metallic);
 
                 float3 lightDirWS = -normalize(lightData.forward);
@@ -449,13 +450,13 @@ Shader "PRC/Eyes"
 
                 // OUTER LAYER SHADING - START //
                 // normal - outer 
-                float3 normalTS_outer = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Outer, SamplerState_Linear_Repeat, uv_parallax, 0));
-                normalTS_outer.xy *= _NormalScale_Outer;
+                float3 normalTS_outer = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Iris, SamplerState_Linear_Repeat, uv_parallax, 0));
+                normalTS_outer.xy *= _NormalScale_Iris;
                 normalTS_outer.z = sqrt(1 - saturate(dot(normalTS_outer.xy, normalTS_outer.xy)));
                 float3 normalWS_outer = mul(m_tangentToWorld, normalTS_outer);
                 // Tex - outer
-                float3 rmom_outer = SAMPLE_TEXTURE2D(_T_Rmom_Outer, SamplerState_Linear_Repeat, IN.uv);
-                float roughness_outer = lerp(0.01, 1.0, rmom_outer.r * _RoughnessScale_Outer);
+                float3 rmom_outer = SAMPLE_TEXTURE2D(_T_Rmom_Iris, SamplerState_Linear_Repeat, IN.uv);
+                float roughness_outer = lerp(0.01, 1.0, rmom_outer.r * _RoughnessScale_Iris);
                 float metallic_outer = lerp(0.01, 1.0, rmom_outer.g * _MetallicScale_Outer);
                 float ao_outer = lerp(0.01, 1.0, rmom_outer.b * _AOScale_Outer);
                 float a_outer = roughness_outer * roughness_outer;

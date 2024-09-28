@@ -37,7 +37,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_BaseColor:
-        m_Texture: {fileID: 2800000, guid: 6925c1464e9374e488741a43c0af847c, type: 3}
+        m_Texture: {fileID: 2800000, guid: ec8f44d32dac57d40a61f2e34c9694e9, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_Curvature:
@@ -49,7 +49,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_Height:
-        m_Texture: {fileID: 2800000, guid: 2c25ddd8f38ecc34f8a9cb4960a6ad59, type: 3}
+        m_Texture: {fileID: 2800000, guid: 45cd27fcd778fed408ed44c7c9f0f286, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Iris_BaseColor:
+        m_Texture: {fileID: 2800000, guid: 357614954b0c8c24982fc3f488257cac, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_LUT_Diffuse:
@@ -72,6 +76,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: ac837942544c3854b88236d4e78ab043, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _T_Normal_Iris:
+        m_Texture: {fileID: 2800000, guid: ac837942544c3854b88236d4e78ab043, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _T_Normal_Outer:
         m_Texture: {fileID: 2800000, guid: d18ae7adb6348804bb47269c654162c3, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -80,12 +88,28 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _T_RMOM_Sclera:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _T_Rmo:
         m_Texture: {fileID: 2800000, guid: 9a649a189da98354599c60e8c3538958, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _T_Rmom_Iris:
+        m_Texture: {fileID: 2800000, guid: 68b20f9438226634ba6d9ce920db7e80, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _T_Rmom_Outer:
         m_Texture: {fileID: 2800000, guid: affeeeb181662dd4596517985eb16184, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Sclera_BaseColor:
+        m_Texture: {fileID: 2800000, guid: ec8f44d32dac57d40a61f2e34c9694e9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Sclera_Normal:
+        m_Texture: {fileID: 2800000, guid: 6b5df69462d7eb545bb213e8f30da754, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_Thickness:
@@ -121,12 +145,14 @@ Material:
     - _MetallicScale_Outer: 1
     - _MinThicknessNormalized: 0.0045
     - _NormalScale: 0.65
+    - _NormalScale_Iris: 1
     - _NormalScale_K: 1
     - _NormalScale_Outer: 0.25
     - _NormalScale_Sclera: 1
     - _Pass: 2
     - _ReceiveDirectionalShadow: 1
     - _RoughnessScale: 0.326
+    - _RoughnessScale_Iris: 1
     - _RoughnessScale_Outer: 1
     - _SSS_n: 3
     - _ScleraSSS: 1
@@ -139,6 +165,8 @@ Material:
     - _WrapRGB: 0
     m_Colors:
     - _BaseColorTint: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColorTint_Iris: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColorTint_Sclera: {r: 1, g: 1, b: 1, a: 1}
     - _CausticNormalOffset: {r: -0.68, g: 0, b: 0, a: 0}
     - _CurvatureScaleBias: {r: 0.5, g: 0.35, b: 0, a: 0}
     - _LimbusColor: {r: 0.09380558, g: 0.3207547, b: 0.26433212, a: 1}
