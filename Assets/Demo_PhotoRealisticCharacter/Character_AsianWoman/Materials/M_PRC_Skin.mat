@@ -74,10 +74,10 @@ Material:
     - _AOScale: 1
     - _Compare: 8
     - _DetailNormalScale: 1
-    - _DetailNormalScale_K: 1
+    - _DetailNormalScale_K: 0.5
     - _DetailNormal_K: 1
-    - _DirectionalSpecularIntensity: 6.5
-    - _DirectionalSpecularIrradianceBias: 0.725
+    - _DirectionalSpecularIntensity: 13
+    - _DirectionalSpecularIrradianceBias: 0
     - _Gloss: 0.645
     - _Glossiness: 0.625
     - _LowNormalLod: 6
@@ -94,7 +94,7 @@ Material:
     - _WrapR: 0
     - _WrapRGB: 0
     m_Colors:
-    - _CurvatureScaleBias: {r: 1.5, g: 0.15, b: 0, a: 0}
+    - _CurvatureScaleBias: {r: 1, g: 0, b: 0, a: 0}
     - _Test: {r: 0.85, g: 0, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: 0, b: 0, a: 0}
     - _TransScaleBiasEnv: {r: 1, g: 0.08, b: 0, a: 0}

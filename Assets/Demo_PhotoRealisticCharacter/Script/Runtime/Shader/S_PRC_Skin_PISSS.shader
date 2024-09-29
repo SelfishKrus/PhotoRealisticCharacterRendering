@@ -359,7 +359,7 @@ Shader "PRC/Skin_PISSS"
                 // PRE
                 DirectionalLightData lightData = _DirectionalLightDatas[0];
                 float3 lightDir = -normalize(lightData.forward);
-                float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
+                float3 camDir = GetWorldSpaceNormalizeViewDir(IN.posWS);
 
                 float2 posSS = IN.pos.xy / _ScreenParams.xy;
                 HDShadowContext shadowContext = InitShadowContext();
