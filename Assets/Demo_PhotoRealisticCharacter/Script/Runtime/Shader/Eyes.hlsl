@@ -54,8 +54,8 @@ float3 ComputeEyeMask(float2 uv, float2 center, float limbusPos, float limbusSmo
 
 float Limbus(float2 uv, float threshold, float smoothness)
 {   
-    float sdf0 = smoothstep(threshold, threshold + smoothness, CircleSDF(uv, float2(0.5, 0.5), 0));
-    float sdf1 = smoothstep(threshold, threshold - smoothness, CircleSDF(uv, float2(0.5, 0.5), 0));
+    float sdf0 = smoothstep(threshold - smoothness, threshold + smoothness, CircleSDF(uv, float2(0.5, 0.5), 0));
+    float sdf1 = smoothstep(threshold + smoothness, threshold - smoothness, CircleSDF(uv, float2(0.5, 0.5), 0));
     float limbus = sdf1 + sdf0;
     
     return limbus;
