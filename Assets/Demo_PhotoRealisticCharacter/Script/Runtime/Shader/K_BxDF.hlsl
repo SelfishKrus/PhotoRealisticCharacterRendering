@@ -74,7 +74,7 @@
 	}
 
 	// Fresnel - UE Schilick 
-	float3 Fresnel_Schlick_Fitting(float F0, float cosTheta)
+	float3 Fresnel_Schlick_Fitting(float3 F0, float cosTheta)
     {
         float Fre = exp2((-5.55473 * cosTheta - 6.98316) * cosTheta);
         return lerp(Fre, 1, F0);
