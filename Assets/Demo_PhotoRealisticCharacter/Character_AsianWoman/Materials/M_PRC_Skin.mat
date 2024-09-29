@@ -100,6 +100,6 @@ Material:
     - _TransScaleBiasEnv: {r: 1, g: 0.08, b: 0, a: 0}
     - _TransmittanceTint: {r: 0.7798742, g: 0.22534402, b: 0.12997895, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
-    - _WrapLighting: {r: 0.27044016, g: 0.27044016, b: 0.27044016, a: 1}
+    - _WrapLighting: {r: 0.5188679, g: 0.38425595, b: 0.38425595, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
