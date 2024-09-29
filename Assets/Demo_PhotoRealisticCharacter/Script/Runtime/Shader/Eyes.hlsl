@@ -3,7 +3,7 @@
 
 float2 ParallaxOffset_K(float height, float parallaxScale, float3 view)
 {
-    float2 offset = height * view;
+    float2 offset = height * view.xy;
     //offset.y = -offset.y;
     return parallaxScale * offset;
 }
@@ -27,14 +27,14 @@ float CircleSDF(float2 uv, float2 center, float radius)
 
 float2 ParallaxOffset_PhysicallyBased(float3 frontNormalOS, float3 normalWS, float3 viewWS, float height, float4x4 m_ObjectToWorld, float4x4 m_worldToTangent)
 {
-    float3 frontNormalWS = normalize(mul(m_ObjectToWorld, frontNormalOS));
+    float3 frontNormalWS = normalize(mul(m_ObjectToWorld, float4(frontNormalOS, 1))).xyz;
     float3 refractDirWS = GetEyeRefractDir(1, normalWS, viewWS);
     // cosAlpha is approaching 0 at grazing angles, which leads to artefacts
     // need to set a minimum value
     float cosAlpha = max(dot(frontNormalWS, -refractDirWS), 0.2);
     float dist = height / cosAlpha;
     float3 offsetWS = dist * refractDirWS;
-    float2 offsetTS = mul(m_worldToTangent, offsetWS).xy;
+    float2 offsetTS = mul(m_worldToTangent, float4(offsetWS, 1)).xy;
     
     return offsetTS;
 }
@@ -77,6 +77,11 @@ float ComputeCaustic(float3 V, float3 normal, float3 lightDir, float3 eyeMask)
     return causticIris * eyeMask.r;
 }
 
+float3 EvaluateScleraSSS(float NoL, float3 _WrapLighting, float n)
+{   
+    float3 val = (NoL + _WrapLighting) / (1 + _WrapLighting);
 
+    return pow(max(val, 0), n) * (n + 1) / (2 * (1 + _WrapLighting));
+}
 
 #endif 
