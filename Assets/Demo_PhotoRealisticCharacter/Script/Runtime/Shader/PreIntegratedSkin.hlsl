@@ -34,9 +34,9 @@ float3 SkinSSS(
         SamplerState ss)
 {
     float3 sss;
-    sss.r = texDiffuseLUT.Sample(ss, float2(NoLRGB.r, curvature));
-    sss.g = texDiffuseLUT.Sample(ss, float2(NoLRGB.g, curvature));
-    sss.b = texDiffuseLUT.Sample(ss, float2(NoLRGB.b, curvature));
+    sss.r = texDiffuseLUT.Sample(ss, float2(NoLRGB.r, curvature)).r;
+    sss.g = texDiffuseLUT.Sample(ss, float2(NoLRGB.g, curvature)).g;
+    sss.b = texDiffuseLUT.Sample(ss, float2(NoLRGB.b, curvature)).b;
     
     return sss;
 }
@@ -64,7 +64,7 @@ float3 EvaluateSSSDirectLight(
     float NoLBUnclamped = dot(normalB, lightDir);
     float3 NoLRGB = float3(NoLBlurredUnclamped, NoLGUnclamped, NoLBUnclamped);
 
-    NoLRGB.r = (NoLRGB.r + wrap) / (1 + wrap);
+    NoLRGB = (NoLRGB + wrap) / (1 + wrap);
 
     NoLRGB *= shadow;
     
@@ -94,7 +94,7 @@ float3 EvaluateSpecularDirectLight(
 {
     float specPower = exp2((1-roughness) * specIntensity); // remap to be more linear
 
-    float h = normalize(v + l);
+    float3 h = normalize(v + l);
     float NoH = saturate(dot(n_high, h));
     // remap irradiance in case that specular shows up in the shadow 
     //float NoL = saturate(dot(n_high, l) - NoLBias);
@@ -113,7 +113,7 @@ float3 EvaluateSpecularDirectLight(
     float D1 = NDF_Blinn_NvFaceWorks(specPower1, NoH);
     float V1 = Vis_SchlickSmith_NvFaceWorks(specPower1, NoV, NoL);
 
-    float F = Fresnel_Schlick(0.028, LoH);
+    float3 F = Fresnel_Schlick(0.028, LoH);
     
     float3 brdf = lerp(D0*V0, D1*V1, 0.15) * F;
     float3 irradiance = NoL * lightColor * shadow;
@@ -132,7 +132,7 @@ float3 EvaluateTransmittanceDirectLight(
         Texture2D texTransLUT,
         SamplerState ss)
 {
-    float T = texTransLUT.Sample(ss, float2(thickness * thicknessScaleBias.x + thicknessScaleBias.y, 0));
+    float3 T = texTransLUT.Sample(ss, float2(thickness * thicknessScaleBias.x + thicknessScaleBias.y, 0)).rgb;
     float E = max(0.3 + dot(-normal, lightDir), 0.0);
     return T * lightColor * transColor * E;
 }
@@ -145,7 +145,7 @@ float3 EvaluateTransmittanceEnv(
         Texture2D texTransLUT,
         SamplerState ss)
 {
-    float T = texTransLUT.Sample(ss, float2(thickness * thicknessScaleBias.x + thicknessScaleBias.y, 0));
+    float3 T = texTransLUT.Sample(ss, float2(thickness * thicknessScaleBias.x + thicknessScaleBias.y, 0)).rgb;
     float3 E = irradiance_SH;
     return T * transColor * E;
 }

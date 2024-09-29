@@ -300,7 +300,7 @@ Shader "PRC/Skin_PISSS"
             float2 _TransScaleBias;
             float2 _TransScaleBiasEnv;
             float _MinThicknessNormalized;
-            float4 _WrapLighting;
+            float3 _WrapLighting;
             float _DirectionalSpecularIntensity;
             float _DirectionalSpecularIrradianceBias;
 
@@ -311,9 +311,9 @@ Shader "PRC/Skin_PISSS"
             {
                 Varyings OUT;
                 OUT.pos = TransformObjectToHClip(IN.posOS.xyz);
-                OUT.posWS = TransformObjectToWorld(IN.posOS);
+                OUT.posWS = TransformObjectToWorld(IN.posOS.xyz);
                 OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS);
-                OUT.tangentWS = float4(TransformObjectToWorldDir(IN.tangentOS).rgb, IN.tangentOS.w);
+                OUT.tangentWS = float4(TransformObjectToWorldDir(IN.tangentOS.xyz).xyz, IN.tangentOS.w);
                 OUT.uv = IN.uv;
                 return OUT;
             }
@@ -361,7 +361,7 @@ Shader "PRC/Skin_PISSS"
                 float3 lightDir = -normalize(lightData.forward);
                 float3 camDir = normalize(_WorldSpaceCameraPos - IN.posWS);
 
-                float2 posSS = IN.pos / _ScreenParams.xy;
+                float2 posSS = IN.pos.xy / _ScreenParams.xy;
                 HDShadowContext shadowContext = InitShadowContext();
                 #if defined(RECEIVE_DIRECTIONAL_SHADOW)
                     float shadow = GetDirectionalShadowAttenuation(shadowContext,
@@ -380,7 +380,7 @@ Shader "PRC/Skin_PISSS"
 
                 // lighting
                 // diffuse DL
-                float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color, _WrapLighting, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp,  shadow);
+                float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color.rgb, _WrapLighting, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, shadow);
                 // specular DL
                 float3 specular = EvaluateSpecularDirectLight(normalWS_specular, camDir, lightDir, lightData.color, roughness, _DirectionalSpecularIntensity, _DirectionalSpecularIrradianceBias, shadow);
                 // trans DL
@@ -404,7 +404,7 @@ Shader "PRC/Skin_PISSS"
                 float3 brdf_specular_env = EnvBRDF(0.028, roughness, NoV_detail);
                 float mipmapLevelLod = PerceptualRoughnessToMipmapLevel(a);
                 float3 reflectDir = reflect(-camDir, normalWS_specular);
-                float3 irradiance_IBL = SampleSkyTexture(reflectDir, mipmapLevelLod, 0);
+                float3 irradiance_IBL = SampleSkyTexture(reflectDir, mipmapLevelLod, 0).rgb;
                 float3 specular_env = brdf_specular_env * irradiance_IBL * ao;
 
                 float3 lighting_DL = diffuse + specular + transmittance;

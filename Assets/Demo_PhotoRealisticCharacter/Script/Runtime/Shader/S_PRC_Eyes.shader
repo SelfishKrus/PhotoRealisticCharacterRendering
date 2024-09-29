@@ -403,12 +403,6 @@ Shader "PRC/Eyes"
                     float shadow = 1;
                 #endif
 
-                // LIMBUS - START //
-                float limbusMask = eyeMask.g;
-                baseColor = lerp(baseColor, _LimbusColor * baseColor, limbusMask);
-                // LIMBUS - END // 
-
-
                 // IRIS SHADING - START // 
                 // directional light - diffuse // 
                 #if defined(SCLERA_SSS)

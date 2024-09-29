@@ -1,7 +1,9 @@
 ﻿#ifndef BXDF_INCLUDED
 #define BXDF_INCLUDED
-
-	#define PI 3.14159265359
+	
+	#ifndef PI
+		#define PI 3.14159265359
+	#endif 
 
 	// replace lut with tex in the script 
 	#define PreIntegratedGF T_LUT_IntegrateBRDF
