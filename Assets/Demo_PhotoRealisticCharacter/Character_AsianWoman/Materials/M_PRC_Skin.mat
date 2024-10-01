@@ -76,8 +76,8 @@ Material:
     - _DetailNormalScale: 1
     - _DetailNormalScale_K: 0.5
     - _DetailNormal_K: 1
-    - _DirectionalSpecularIntensity: 13
-    - _DirectionalSpecularIrradianceBias: 0
+    - _DirectionalSpecularIntensity: 5.5
+    - _DirectionalSpecularIrradianceBias: 0.725
     - _Gloss: 0.645
     - _Glossiness: 0.625
     - _LowNormalLod: 6
@@ -94,12 +94,12 @@ Material:
     - _WrapR: 0
     - _WrapRGB: 0
     m_Colors:
-    - _CurvatureScaleBias: {r: 1, g: 0, b: 0, a: 0}
+    - _CurvatureScaleBias: {r: 1.5, g: 0.15, b: 0, a: 0}
     - _Test: {r: 0.85, g: 0, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: 0, b: 0, a: 0}
     - _TransScaleBiasEnv: {r: 1, g: 0.08, b: 0, a: 0}
     - _TransmittanceTint: {r: 0.7798742, g: 0.22534402, b: 0.12997895, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
-    - _WrapLighting: {r: 0.5188679, g: 0.38425595, b: 0.38425595, a: 1}
+    - _WrapLighting: {r: 0.27044016, g: 0.27044016, b: 0.27044016, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

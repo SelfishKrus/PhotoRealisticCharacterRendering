@@ -39,27 +39,35 @@ float2 ParallaxOffset_PhysicallyBased(float3 frontNormalOS, float3 normalWS, flo
     return offsetTS;
 }
 
-// mask.r - iris
-// mask.g - limbus
-// mask.b - sclera
-float3 ComputeEyeMask(float2 uv, float2 center, float limbusPos, float limbusSmooth)
+float GetEyeHeight(float2 uv, float2 center)
 {
-    float3 eyeMask;
-    eyeMask.r = smoothstep(limbusPos, limbusPos - limbusSmooth, CircleSDF(uv, center, 0));
-    eyeMask.b = smoothstep(limbusPos, limbusPos + limbusSmooth, CircleSDF(uv, center, 0));
-    eyeMask.g = 1 - eyeMask.r - eyeMask.b;
-    
-    return eyeMask;
+    float sdf = CircleSDF(uv, center, 0);
+
+    return smoothstep(0.5, 0.0, sdf);
 }
 
-float Limbus(float2 uv, float threshold, float smoothness)
+// mask.r - pupil
+// mask.g - iris 
+// mask.b - limbus
+// mask.a - sclera
+float4 ComputeEyeMask(float2 uv, float2 center, float pupilScale, float pupilSmooth, float limbusSmooth)
 {   
-    float sdf0 = smoothstep(threshold - smoothness, threshold + smoothness, CircleSDF(uv, float2(0.5, 0.5), 0));
-    float sdf1 = smoothstep(threshold + smoothness, threshold - smoothness, CircleSDF(uv, float2(0.5, 0.5), 0));
-    float limbus = sdf1 + sdf0;
+    float sdf = CircleSDF(uv, center, 0);
+    float pupil = smoothstep(pupilScale, pupilScale - pupilSmooth * 0.5, sdf);
+    float iris = smoothstep(0.5 + limbusSmooth * 2, pupilScale, sdf);
+    float limbus = smoothstep(0.5 + limbusSmooth, 0.5, sdf) - smoothstep(0.5, 0.5 - limbusSmooth, sdf);
+    float sclera = 1- smoothstep(0.5 + limbusSmooth, 0.5, sdf);
     
-    return limbus;
+    return float4(pupil, iris, limbus, sclera);
+}
 
+float3 GetIrisTint(float3 irisColor_inner, float3 irisColor_outer, float3 limbusColor, float4 eyeMask)
+{
+    float3 iris_tint = lerp(irisColor_outer, irisColor_inner, eyeMask.g);
+    iris_tint = lerp(iris_tint, limbusColor, eyeMask.b);
+    iris_tint *= 1 - eyeMask.r;
+    
+    return iris_tint;
 }
 
 // ref: Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl
@@ -82,6 +90,15 @@ float3 EvaluateScleraSSS(float NoL, float3 _WrapLighting, float n)
     float3 val = (NoL + _WrapLighting) / (1 + _WrapLighting);
 
     return pow(max(val, 0), n) * (n + 1) / (2 * (1 + _WrapLighting));
+}
+
+// From UE Material function Lerp_3Color
+float3 Lerp3Color(float3 color1, float3 color2, float3 color3, float a)
+{
+    float3 lerp0 = lerp(color1, color2, saturate(a * 2));
+    float3 lerp1 = lerp(lerp0, color3, saturate(a * 2 - 1));
+    
+    return lerp1;
 }
 
 #endif 

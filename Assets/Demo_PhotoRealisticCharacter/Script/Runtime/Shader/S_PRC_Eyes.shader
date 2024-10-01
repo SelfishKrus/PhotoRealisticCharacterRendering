@@ -22,9 +22,19 @@ Shader "PRC/Eyes"
         [Header(Iris)]
         [Space(10)]
         _IrisScale ("Iris Scale", Float) = 1
+        _PupilScale ("Pupil Scale", Float) = 1
+        _IrisInnerScale ("Iris Inner Scale", Float) = 0.5
 
-        _T_Iris_BaseColor ("Iris Base Color", 2D) = "white" {}
-        _BaseColorTint_Iris ("Base Color Tint", Color) = (1,1,1,1)
+        // Iris Mask // 
+        // R - pupil
+        // G - iris layer 0
+        // B - iris layer 1
+        // A - height 
+        _T_Iris_BaseColor ("Iris Mask", 2D) = "white" {}
+        _Iris_Color0 ("Iris Color 0", Color) = (1,1,1,1)
+        _Iris_Color1 ("Iris Color 1", Color) = (1,1,1,1)
+        _PupilSmoothness ("Pupil Smoothness", Range(0, 1)) = 0.5
+        _LimbusColor ("Limbus Color", Color) = (1,1,1,1)
 
         _T_Normal_Iris ("Normal Map", 2D) = "bump" {}
         _NormalScale_Iris ("Normal Scale", Range(0,5)) = 1
@@ -40,7 +50,6 @@ Shader "PRC/Eyes"
 
         [Header(Limbus)]
         [Space(10)]
-        _LimbusColor ("Limbus Color", Color) = (1,1,1,1)
         _LimbusPos ("Limbus Position", Range(0, 1)) = 0.5
         _LimbusSmoothness ("Limbus Smoothness", Range(0, 1)) = 0.5
         [Space(20)]
@@ -295,7 +304,8 @@ Shader "PRC/Eyes"
             TEXTURE2D(_T_Rmom_Iris);
 
             float3 _BaseColorTint_Sclera;
-            float3 _BaseColorTint_Iris;
+            float3 _Iris_Color0;
+            float3 _Iris_Color1;
             float _WrapLighting;
             float _RoughnessScale;
             float _MetallicScale;
@@ -304,6 +314,8 @@ Shader "PRC/Eyes"
             float _HeightScale;
             float _IrisMask;
             float _IrisScale;
+            float _PupilScale;
+            float _IrisInnerScale;
             float4 _Test;
 
             float _NormalScale_Iris;
@@ -316,6 +328,7 @@ Shader "PRC/Eyes"
             float3 _LimbusColor;
             float _LimbusPos;
             float _LimbusSmoothness;
+            float _PupilSmoothness;
 
             float _CausticIntensity;
 
@@ -344,16 +357,9 @@ Shader "PRC/Eyes"
 
                 // Parallax 
                 float3 camDirWS = GetWorldSpaceNormalizeViewDir(IN.posWS);
-                float height = SAMPLE_TEXTURE2D(_T_Height, SamplerState_Linear_Repeat, IN.uv).r;
-                height *= _HeightScale;
 
-                // #if defined(IRIS_PARALLAX)
-                //     float2 offsetTS = ParallaxOffset_PhysicallyBased(float3(1,0,0), IN.normalWS, camDirWS, height, UNITY_MATRIX_M, m_worldToTangent);
-                //     float parallaxMask = (1-eyeMask.b);
-                //     float2 uv_parallax = IN.uv + offsetTS;
-                // #else 
-                //     float2 uv_parallax = IN.uv;
-                // #endif
+
+
 
                 // TEX - sclera
                 float4 rmo_sclera = SAMPLE_TEXTURE2D(_T_RMOM_Sclera, SamplerState_Linear_Repeat, IN.uv);
@@ -447,20 +453,49 @@ Shader "PRC/Eyes"
 
 
                 // IRIS SHADING - START 
-                float2 uv_iris = (IN.uv - 0.5) * _IrisScale + 0.5;
-                float3 baseColor_iris = SAMPLE_TEXTURE2D(_T_Iris_BaseColor, SamplerState_Linear_Repeat, uv_iris) * _BaseColorTint_Iris * 2;
+                float2 eyeCenter = float2(0.5,0.5);
+                float2 uv_iris = (IN.uv - eyeCenter) * _IrisScale + eyeCenter;
 
+                // Procedural Base Color 
+                float height = GetEyeHeight(uv_iris, eyeCenter) * _HeightScale;
+
+                #if defined(IRIS_PARALLAX)
+                    float2 offsetTS = ParallaxOffset_PhysicallyBased(float3(1,0,0), IN.normalWS, camDirWS, height, UNITY_MATRIX_M, m_worldToTangent);
+                #else 
+                    float2 offsetTS = float2(0,0);
+                #endif
+                uv_iris += offsetTS;
+
+                float4 eyeMask = ComputeEyeMask(uv_iris, eyeCenter, _PupilScale, _PupilSmoothness, _LimbusSmoothness);
+
+                float3 iris_tint = GetIrisTint(_Iris_Color0, _Iris_Color1, _LimbusColor, eyeMask);
+                float3 baseColor_iris = SAMPLE_TEXTURE2D(_T_Iris_BaseColor, SamplerState_Linear_Clamp, uv_iris).rgb * iris_tint;
+
+                // rmo 
                 float4 rmo_iris = SAMPLE_TEXTURE2D(_T_RMOM_Sclera, SamplerState_Linear_Repeat, uv_iris);
                 float roughness_iris = lerp(0.01, 1.0, rmo_iris.r * _RoughnessScale_Iris);
                 float metallic_iris = lerp(0.01, 1.0, rmo_iris.g * _MetallicScale_Iris);
                 float ao_iris = lerp(0.01, 1.0, rmo_iris.b * _AOScale_Iris);
+
+                // normal 
+                float3 normalTS_high_iris = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Iris, SamplerState_Linear_Repeat, uv_iris, 0));
+                normalTS_high_iris.xy *= _NormalScale_Iris;
+                normalTS_high_iris.z = sqrt(1 - saturate(dot(normalTS_high_iris.xy, normalTS_high_iris.xy)));
+                float3 normalWS_high_iris = mul(m_tangentToWorld, float4(normalTS_high_iris,1)).xyz;
+
+                // shading 
+                float NoLUnclamped_iris = dot(normalWS_high_iris, lightDirWS);
+                float NoLWrap_iris = (NoLUnclamped_iris + _WrapLighting) / (1 + _WrapLighting);
+
+                float3 directionalirradiance_iris = NoLWrap_iris * lightData.color * shadow;
+
+                float3 directionalDiffuse_iris = directionalirradiance_iris * baseColor_iris;
                 
-                float3 eyeMask = ComputeEyeMask(uv_iris, float2(0.5,0.5), 0.5, _LimbusSmoothness);
-                float3 irisShading = baseColor_iris;
+                float3 irisShading = directionalDiffuse_iris;
                 // IRIS SHADING - END // 
 
                 float3 col = 0;
-                col = lerp(scleraShading, irisShading, eyeMask.r);
+                col = lerp(irisShading, scleraShading, eyeMask.a);
                 return half4(col, 1);
             }
             ENDHLSL
