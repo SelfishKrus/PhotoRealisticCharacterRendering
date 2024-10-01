@@ -71,18 +71,18 @@ float3 GetIrisTint(float3 irisColor_inner, float3 irisColor_outer, float3 limbus
 }
 
 // ref: Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl
-float ComputeCaustic(float3 V, float3 normal, float3 lightDir, float3 eyeMask)
+float ComputeCaustic(float3 posOS, float3 lightDirOS, float3 mirrorDir, float irisMask)
 {
-    if (eyeMask.r < 0.001)
+    if (irisMask.r < 0.001)
     {
         return 0.0;
     }
-
-    // Totally empirical! TODO: need to revisit
-    float causticIris = 2 * pow(saturate(dot(normalize(normal.xz), lightDir.xz)), 2);
+    
+    float3 normalOS = 0;
+    float causticIris = 2 * pow(saturate(dot(normalize(normalOS.xz), lightDirOS.xz)), 2);
     // float causticSclera = min(2000.0 * pow(saturate(dot(-normalize(pos.xyz), lightDir.xyz)), 20), 100.0);
     
-    return causticIris * eyeMask.r;
+    return causticIris * irisMask.r;
 }
 
 float3 EvaluateScleraSSS(float NoL, float3 _WrapLighting, float n)
@@ -92,13 +92,6 @@ float3 EvaluateScleraSSS(float NoL, float3 _WrapLighting, float n)
     return pow(max(val, 0), n) * (n + 1) / (2 * (1 + _WrapLighting));
 }
 
-// From UE Material function Lerp_3Color
-float3 Lerp3Color(float3 color1, float3 color2, float3 color3, float a)
-{
-    float3 lerp0 = lerp(color1, color2, saturate(a * 2));
-    float3 lerp1 = lerp(lerp0, color3, saturate(a * 2 - 1));
-    
-    return lerp1;
-}
+
 
 #endif 

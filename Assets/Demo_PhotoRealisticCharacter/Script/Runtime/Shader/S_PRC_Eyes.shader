@@ -2,21 +2,30 @@ Shader "PRC/Eyes"
 {
     Properties
     {   
-        [Header(Sclera)]
+        [Header(Eye)]
         [Space(10)]
-        _T_Sclera_BaseColor ("Sclera Base Color", 2D) = "white" {}
-        _BaseColorTint_Sclera ("Base Color Tint", Color) = (1,1,1,1)
-        _T_Sclera_Normal ("Normal Map", 2D) = "bump" {}
+        _T_BaseColor ("Sclera Base Color", 2D) = "white" {}
+        _BaseColorTint ("Base Color Tint", Color) = (1,1,1,1)
+        _T_Normal ("Normal Map", 2D) = "bump" {}
         _NormalScale_K ("Normal Scale", Range(-5,5)) = 1
 
-        _T_RMOM_Sclera ("RMO", 2D) = "white" {} 
+        [Space(10)]
+        _T_RMOM ("RMO", 2D) = "white" {} 
         _RoughnessScale ("Roughness Scale", Range(0, 3)) = 1
         _MetallicScale ("Metallic Scale", Range(0, 3)) = 1
         _AOScale ("AO Scale", Range(0, 3)) = 1
 
-        _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
+        [Space(10)]
+        _T_Height ("Height Map", 2D) = "black" {}
+        _HeightScale ("Height Scale", Float) = 1
+
+        [Space(20)]
+
+        [Header(Sclera SSS)]
+        [Space(10)]
         _SSS_n ("SSS n", Float) = 3
-        _IrisMask ("Iris Mask From Sclera", Range(-1, 1)) = -0.65
+        _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
+
         [Space(20)]
 
         [Header(Iris)]
@@ -25,11 +34,6 @@ Shader "PRC/Eyes"
         _PupilScale ("Pupil Scale", Float) = 1
         _IrisInnerScale ("Iris Inner Scale", Float) = 0.5
 
-        // Iris Mask // 
-        // R - pupil
-        // G - iris layer 0
-        // B - iris layer 1
-        // A - height 
         _T_Iris_BaseColor ("Iris Mask", 2D) = "white" {}
         _Iris_Color0 ("Iris Color 0", Color) = (1,1,1,1)
         _Iris_Color1 ("Iris Color 1", Color) = (1,1,1,1)
@@ -44,8 +48,6 @@ Shader "PRC/Eyes"
         _MetallicScale_Iris ("Metallic Scale", Range(0, 1.5)) = 1
         _AOScale_Iris ("AO Scale", Range(0, 1.5)) = 1
 
-        _T_Height ("Height Map", 2D) = "black" {}
-        _HeightScale ("Height Scale", Float) = 1
         [Space(20)]
 
         [Header(Limbus)]
@@ -294,16 +296,16 @@ Shader "PRC/Eyes"
 
             SAMPLER(SamplerState_Linear_Repeat);
             SAMPLER(SamplerState_Linear_Clamp);
-            TEXTURE2D(_T_Sclera_BaseColor);
+            TEXTURE2D(_T_BaseColor);
             TEXTURE2D(_T_Iris_BaseColor);
-            TEXTURE2D(_T_Sclera_Normal);
+            TEXTURE2D(_T_Normal);
             TEXTURE2D(_T_Height);
-            TEXTURE2D(_T_RMOM_Sclera);
+            TEXTURE2D(_T_RMOM);
 
             TEXTURE2D(_T_Normal_Iris);
             TEXTURE2D(_T_Rmom_Iris);
 
-            float3 _BaseColorTint_Sclera;
+            float3 _BaseColorTint;
             float3 _Iris_Color0;
             float3 _Iris_Color1;
             float _WrapLighting;
@@ -312,7 +314,6 @@ Shader "PRC/Eyes"
             float _AOScale;
             float _NormalScale_K;
             float _HeightScale;
-            float _IrisMask;
             float _IrisScale;
             float _PupilScale;
             float _IrisInnerScale;
@@ -332,6 +333,7 @@ Shader "PRC/Eyes"
 
             float _CausticIntensity;
 
+            #include "K_Utilities.hlsl"
             #include "K_Lighting.hlsl"
             #include "Eyes.hlsl"
 
@@ -355,45 +357,57 @@ Shader "PRC/Eyes"
                 
                 float3 posOS = TransformWorldToObject(IN.posWS);
 
-                // Parallax 
-                float3 camDirWS = GetWorldSpaceNormalizeViewDir(IN.posWS);
 
 
+                // height 
+                float height = _HeightScale * 0.1 *SAMPLE_TEXTURE2D(_T_Height, SamplerState_Linear_Repeat, IN.uv).r;
 
+                // normal
+                float3 normalTS_high = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, IN.uv, 0));
+                normalTS_high = ScaleNormalTS(normalTS_high, _NormalScale_K);
+                float3 normalWS_high = mul(m_tangentToWorld, float4(normalTS_high,1)).xyz;
 
-                // TEX - sclera
-                float4 rmo_sclera = SAMPLE_TEXTURE2D(_T_RMOM_Sclera, SamplerState_Linear_Repeat, IN.uv);
-                float roughness_sclera = lerp(0.01, 1.0, rmo_sclera.r * _RoughnessScale);
-                float metallic_sclera = lerp(0.01, 1.0, rmo_sclera.g * _MetallicScale);
-                float ao = lerp(0.01, 1.0, rmo_sclera.b * _AOScale);
-
-                // normal - sclera
-                float3 normalTS_high_sclera = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Sclera_Normal, SamplerState_Linear_Repeat, IN.uv, 0));
-                normalTS_high_sclera.xy *= _NormalScale_K;
-                normalTS_high_sclera.z = sqrt(1 - saturate(dot(normalTS_high_sclera.xy, normalTS_high_sclera.xy)));
-                float3 normalWS_high_sclera = mul(m_tangentToWorld, float4(normalTS_high_sclera,1)).xyz;
                 float3 normalWS_geom = IN.normalWS;
+                
+                // parallax 
+                float3 camDirWS = GetWorldSpaceNormalizeViewDir(IN.posWS);
+                #if defined(IRIS_PARALLAX)
+                    float3 frontNormalOS = float3(1.0, 0.0, 0.0);
+                    float2 offsetTS = ParallaxOffset_PhysicallyBased(frontNormalOS, IN.normalWS, camDirWS, height, UNITY_MATRIX_M, m_worldToTangent);
+                #else 
+                    float2 offsetTS = float2(0,0);
+                #endif
+                IN.uv += offsetTS;
 
-                float a_sclera = roughness_sclera * roughness_sclera;
-                float a2_sclera = a_sclera*a_sclera;
-                float mipmapLevelLod_sclera = PerceptualRoughnessToMipmapLevel(a_sclera);
+                // Surface // 
+                // rmo 
+                float4 rmo = SAMPLE_TEXTURE2D(_T_RMOM, SamplerState_Linear_Repeat, IN.uv);
+                float roughness = lerp(0.01, 1.0, rmo.r * _RoughnessScale);
+                float metallic = lerp(0.01, 1.0, rmo.g * _MetallicScale);
+                float ao = lerp(0.01, 1.0, rmo.b * _AOScale);
+
+                float a = roughness * roughness;
+                float a2 = a*a;
+                float mipmapLevelLod = PerceptualRoughnessToMipmapLevel(a);
+
+                // base color 
+                float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, IN.uv).rgb * _BaseColorTint;
+                float3 F0 = lerp(0.04, baseColor, metallic);
 
                 // PRE
+
                 DirectionalLightData lightData = _DirectionalLightDatas[0];                
-
-                float3 baseColor_sclera = SAMPLE_TEXTURE2D(_T_Sclera_BaseColor, SamplerState_Linear_Repeat, IN.uv).rgb * _BaseColorTint_Sclera;
-                float3 F0_sclera = lerp(0.04, baseColor_sclera, metallic_sclera);
-
                 float3 lightDirWS = -normalize(lightData.forward);
+                float3 lightDirOS = TransformWorldToObjectDir(lightDirWS);
                 float3 H = normalize(camDirWS + lightDirWS);
 
-                float NoLUnclamped_sclera = dot(normalWS_high_sclera, lightDirWS);
-                float NoL_sclera = saturate(NoLUnclamped_sclera);
-                float NoH_sclera = saturate(dot(normalWS_high_sclera, H));
+                float NoLUnclamped = dot(normalWS_high, lightDirWS);
+                float NoL = saturate(NoLUnclamped);
+                float NoH = saturate(dot(normalWS_high, H));
                 float VoH = saturate(dot(camDirWS, H));
-                float NoV_sclera = saturate(dot(normalWS_high_sclera, camDirWS));
+                float NoV = saturate(dot(normalWS_high, camDirWS));
 
-                // get directional light shadows 
+                // Get directional light shadows 
                 float2 posSS = IN.pos.xy / _ScreenParams.xy;
                 HDShadowContext shadowContext = InitShadowContext();
                 #if defined(RECEIVE_DIRECTIONAL_SHADOW)
@@ -408,94 +422,59 @@ Shader "PRC/Eyes"
                 // directional light - diffuse // 
                 // #if defined(SCLERA_SSS)
                 //     float n = _SSS_n;
-                //     float3 directionalDiffuseIrradiance_iris = EvaluateScleraSSS(NoL_sclera, _WrapLighting, n) * lightData.color * shadow;
+                //     float3 directionalDiffuseIrradiance_iris = EvaluateScleraSSS(NoL, _WrapLighting, n) * lightData.color * shadow;
                 // #else
-                //     float3 directionalDiffuseIrradiance_iris = NoL_sclera * lightData.color * shadow;
+                //     float3 directionalDiffuseIrradiance_iris = NoL * lightData.color * shadow;
                 // #endif 
 
                 // caustic 
                 // #if defined(IRIS_CAUSTIC)
-                //     directionalDiffuseIrradiance_iris *= 1.0 + _CausticIntensity * ComputeCaustic(camDirWS, normalWS_high_sclera, lightDirWS, eyeMask);
+                //     directionalDiffuseIrradiance_iris *= 1.0 + _CausticIntensity * ComputeCaustic(camDirWS, normalTS_high, lightDirWS, eyeMask);
                 // #endif tionalShading_iris + envShading_iris;
                 // IRIS SHADING - END //
 
-
-
-                // SCLERA SHADING - START // 
                 // directional specular 
-                float D_sclera = NDF_GGX(a2_sclera, NoH_sclera);
-                float3 F_sclera = Fresnel_Schlick_Fitting(F0_sclera, VoH);
-                float V_sclera = Vis_Schlick(a2_sclera, NoV_sclera, NoL_sclera);
-                float3 directionalSpecularBRDF_sclera = D_sclera * F_sclera * V_sclera;
-                float3 directionalIrradiance_sclera = lightData.color * NoL_sclera * shadow;
-                float3 directionalSpecular_sclera = directionalSpecularBRDF_sclera * directionalIrradiance_sclera;
+                float D = NDF_GGX(a2, NoH);
+                float3 F = Fresnel_Schlick_Fitting(F0, VoH);
+                float V = Vis_Schlick(a2, NoV, NoL);
+                float3 directionalSpecularBRDF = D * F * V;
+                float3 directionalIrradiance = lightData.color * NoL * shadow;
+                float3 directionalSpecular = directionalSpecularBRDF * directionalIrradiance;
+
+                // environment specular
+                float3 reflectDir = reflect(-camDirWS, normalWS_high);
+                float3 envBRDF = EnvBRDF(F0, roughness, NoV);
+                float3 envIrradiance = SampleSkyTexture(reflectDir, mipmapLevelLod, 0).rgb;
+                float3 envSpecular = envBRDF * envIrradiance;
+
+                float3 specular = directionalSpecular + envSpecular;
 
                 // directional diffuse 
-                float3 directionalDiffuseBRDF_sclera = Diffuse_Lambert(baseColor_sclera);
+                float3 directionalDiffuseBRDF = Diffuse_Lambert(baseColor);
 
                 #if defined(SCLERA_SSS)
                     float n = _SSS_n;
-                    float3 directionalDiffuseIrradiance_sclera = EvaluateScleraSSS(NoL_sclera, _WrapLighting, n);
+                    float3 directionalDiffuseIrradiance = EvaluateScleraSSS(NoL, _WrapLighting, n);
                 #else 
-                    float3 directionalDiffuseIrradiance_sclera = directionalIrradiance_sclera;
+                    float3 directionalDiffuseIrradiance = directionalIrradiance;
                 #endif 
 
-                float directionalDiffuse_sclera = directionalDiffuseBRDF_sclera * directionalDiffuseIrradiance_sclera;
+                float3 directionalDiffuse = directionalDiffuseBRDF * directionalDiffuseIrradiance;
 
-                // env specular 
-                float3 reflectDir_sclera = reflect(-camDirWS, normalWS_high_sclera);
-                float3 envBRDF_sclera = EnvBRDF(F0_sclera, roughness_sclera, NoV_sclera);
-                float3 envIrradiance_sclera = SampleSkyTexture(reflectDir_sclera, mipmapLevelLod_sclera, 0).rgb;
-                float3 envSpecular_sclera = envBRDF_sclera * envIrradiance_sclera;
+                float3 diffuse = directionalDiffuse;
+
+                // directional caustic
+                // float3 mirrorDir = float3(1,1,-1);
+                // float irisMask = CircleSDF(IN.uv)
+                // float3 directionalCaustic = baseColor * ComputeCaustic(posOS, lightDirOS, mirrorDir, irisMask);
                 
-                float3 scleraShading = envSpecular_sclera + directionalDiffuse_sclera;
-                // SCLERA SHADING - END // 
 
-
-                // IRIS SHADING - START 
                 float2 eyeCenter = float2(0.5,0.5);
                 float2 uv_iris = (IN.uv - eyeCenter) * _IrisScale + eyeCenter;
 
-                // Procedural Base Color 
-                float height = GetEyeHeight(uv_iris, eyeCenter) * _HeightScale;
-
-                #if defined(IRIS_PARALLAX)
-                    float2 offsetTS = ParallaxOffset_PhysicallyBased(float3(1,0,0), IN.normalWS, camDirWS, height, UNITY_MATRIX_M, m_worldToTangent);
-                #else 
-                    float2 offsetTS = float2(0,0);
-                #endif
-                uv_iris += offsetTS;
-
-                float4 eyeMask = ComputeEyeMask(uv_iris, eyeCenter, _PupilScale, _PupilSmoothness, _LimbusSmoothness);
-
-                float3 iris_tint = GetIrisTint(_Iris_Color0, _Iris_Color1, _LimbusColor, eyeMask);
-                float3 baseColor_iris = SAMPLE_TEXTURE2D(_T_Iris_BaseColor, SamplerState_Linear_Clamp, uv_iris).rgb * iris_tint;
-
-                // rmo 
-                float4 rmo_iris = SAMPLE_TEXTURE2D(_T_RMOM_Sclera, SamplerState_Linear_Repeat, uv_iris);
-                float roughness_iris = lerp(0.01, 1.0, rmo_iris.r * _RoughnessScale_Iris);
-                float metallic_iris = lerp(0.01, 1.0, rmo_iris.g * _MetallicScale_Iris);
-                float ao_iris = lerp(0.01, 1.0, rmo_iris.b * _AOScale_Iris);
-
-                // normal 
-                float3 normalTS_high_iris = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Iris, SamplerState_Linear_Repeat, uv_iris, 0));
-                normalTS_high_iris.xy *= _NormalScale_Iris;
-                normalTS_high_iris.z = sqrt(1 - saturate(dot(normalTS_high_iris.xy, normalTS_high_iris.xy)));
-                float3 normalWS_high_iris = mul(m_tangentToWorld, float4(normalTS_high_iris,1)).xyz;
-
-                // shading 
-                float NoLUnclamped_iris = dot(normalWS_high_iris, lightDirWS);
-                float NoLWrap_iris = (NoLUnclamped_iris + _WrapLighting) / (1 + _WrapLighting);
-
-                float3 directionalirradiance_iris = NoLWrap_iris * lightData.color * shadow;
-
-                float3 directionalDiffuse_iris = directionalirradiance_iris * baseColor_iris;
-                
-                float3 irisShading = directionalDiffuse_iris;
                 // IRIS SHADING - END // 
 
-                float3 col = 0;
-                col = lerp(irisShading, scleraShading, eyeMask.a);
+                float3 col = specular + diffuse;
                 return half4(col, 1);
             }
             ENDHLSL
