@@ -177,7 +177,7 @@ Material:
     - _MetallicScale: 0
     - _MetallicScale_Inner: 0
     - _MetallicScale_Iris: 1
-    - _MetallicScale_Outer: 0.1
+    - _MetallicScale_Outer: 0.05
     - _MinThicknessNormalized: 0.0045
     - _NormalScale: 0.65
     - _NormalScale_Inner: 2
