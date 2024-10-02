@@ -238,7 +238,7 @@ Material:
     - _MetallicRemapMin: 0
     - _MetallicScale: 1
     - _NoiseVal: 0.5
-    - _NormalIntensity: 1
+    - _NormalIntensity: 2
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _NormalScale_K: 1
@@ -264,7 +264,7 @@ Material:
     - _RenderQueueType: 4
     - _RequireSplitLighting: 0
     - _RoughnessScale: 1
-    - _Smoothness: 0.95
+    - _Smoothness: 0.9
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
     - _SpecularAAScreenSpaceVariance: 0.1
@@ -300,7 +300,7 @@ Material:
     - _UVBase: 0
     - _UVDetail: 0
     - _UVEmissive: 0
-    - _UVScale_Normal: 0.1
+    - _UVScale_Normal: 0.25
     - _UseEmissiveIntensity: 0
     - _UseShadowThreshold: 0
     - _WrapLighting: 1
@@ -309,8 +309,8 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 0.1509434, g: 0.1509434, b: 0.1509434, a: 0}
-    - _Color: {r: 0.15094337, g: 0.15094337, b: 0.15094337, a: 0}
+    - _BaseColor: {r: 0.27672952, g: 0.27672952, b: 0.27672952, a: 0}
+    - _Color: {r: 0.2767295, g: 0.2767295, b: 0.2767295, a: 0}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
