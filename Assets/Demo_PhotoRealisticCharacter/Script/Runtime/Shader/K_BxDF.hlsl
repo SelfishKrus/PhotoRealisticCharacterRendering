@@ -34,9 +34,9 @@
 	// f = Microfacet specular BRDF = D*G*F / (4*NoL*NoV) = D*Vis*F
 
 	// [Blinn 1977, "Models of light reflection for computer synthesized pictures"]
-	float NDF_Blinn( float n, float NoH )
+	float NDF_Blinn( float a2, float NoH )
 	{
-		//float n = 2 / a2 - 2;
+		float n = 2 / a2 - 2;
 		return (n+2) / (2*PI) * pow( NoH, n );		// 1 mad, 1 exp, 1 mul, 1 log
 	}
 

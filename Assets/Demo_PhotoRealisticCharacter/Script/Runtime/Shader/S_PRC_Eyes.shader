@@ -319,7 +319,6 @@ Shader "PRC/Eyes"
                 // === NORMAL === // 
                 // Outer Normal // 
                 // geom 
-                // flip eye's geom normal to simulate iris structure 
                 float3 posOS = TransformWorldToObject(IN.posWS);
                 float3 normalWS_geom_outer = IN.normalWS;
 
@@ -334,6 +333,8 @@ Shader "PRC/Eyes"
                 
                 // Inner Normal // 
                 // geom 
+                // flip eye's geom normal to simulate iris structure 
+
                 float3 normalOS_geom_inner = normalize(posOS) * float3(1,1,-1);
                 float3 normalWS_geom_inner = TransformObjectToWorldDir(normalOS_geom_inner);
 
@@ -344,7 +345,7 @@ Shader "PRC/Eyes"
                 // high 
                 float3 normalTS_high_inner = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Inner, SamplerState_Linear_Repeat, IN.uv, 0));
                 normalTS_high_inner = ScaleNormalTS(normalTS_high_inner, _NormalScale_Inner);
-                float3 normalWS_high_inner = mul(m_tangentToWorld_outer, float4(normalTS_high_inner,1)).xyz;
+                float3 normalWS_high_inner = mul(m_tangentToWorld_inner, float4(normalTS_high_inner,1)).xyz;
 
                 // === PARALLAX === // 
                 // height 
@@ -366,7 +367,7 @@ Shader "PRC/Eyes"
                 float metallic_inner = lerp(0.01, 1.0, rmo_inner.g * _MetallicScale_Inner);
 
                 float a_inner = roughness_inner * roughness_inner;
-                float a2_inner = a_inner*a_inner;
+                float a2_inner = a_inner * a_inner;
                 float mipmapLevelLod_inner = PerceptualRoughnessToMipmapLevel(a_inner);
 
                 // base color
@@ -409,6 +410,11 @@ Shader "PRC/Eyes"
                 float NoH_inner = saturate(dot(normalWS_high_inner, H));
                 float NoV_inner = saturate(dot(normalWS_high_inner, camDirWS));
 
+                float NoLUnclamped_geom_inner = dot(normalWS_geom_inner, lightDirWS);
+                float NoL_geom_inner = saturate(NoLUnclamped_geom_inner);
+                float NoH_geom_inner = saturate(dot(normalWS_geom_inner, H));
+                float NoV_geom_inner = saturate(dot(normalWS_geom_inner, camDirWS));
+
                 // Get directional light shadows 
                 float2 posSS = IN.pos.xy / _ScreenParams.xy;
                 HDShadowContext shadowContext = InitShadowContext();
@@ -438,12 +444,13 @@ Shader "PRC/Eyes"
 
                 // Inner // 
                 // directional caustic - inner 
-                float3 mirrorDir = float3(1,1,-1);
-                float3 caustic_inner = baseColor_inner * ComputeCaustic(normalWS_geom_inner, lightDirWS, _CausticIntensity, _CausticContrast) * eyeMask.g;
+                float mask = eyeMask.g;
+                float3 caustic_inner = baseColor_inner * ComputeCaustic(normalWS_geom_inner, lightDirWS, _CausticIntensity, _CausticContrast) * mask;
+
+                float3 directionalIrradiance_inner = lightData.color * NoL_inner * shadow;
 
                 // environment specular - inner 
                 float3 reflectDir_inner = reflect(-camDirWS, normalWS_high_inner);
-
 
                 // directional diffuse - inner
                 float3 directionalDiffuseBRDF = Diffuse_Lambert(baseColor_inner);
@@ -452,7 +459,7 @@ Shader "PRC/Eyes"
                     float n = _SSS_n;
                     float3 directionalDiffuseIrradiance = EvaluateScleraSSS(NoL_inner, _WrapLighting, n);
                 #else 
-                    float3 directionalDiffuseIrradiance = directionalIrradiance_outer;
+                    float3 directionalDiffuseIrradiance = directionalIrradiance_inner;
                 #endif 
 
                 float3 directionalDiffuse_inner = directionalDiffuseBRDF * directionalDiffuseIrradiance;
@@ -462,9 +469,9 @@ Shader "PRC/Eyes"
                 float3 envDiffuse_inner = baseColor_inner * envSH;
 
                 float3 diffuse = directionalDiffuse_inner + envDiffuse_inner;
-                float3 specular = directionalSpecular_outer + envSpecular_outer;
+                float3 specular = directionalSpecular_outer + envSpecular_outer + caustic_inner;
 
-                float3 col = specular + diffuse + caustic_inner;
+                float3 col = specular + diffuse;
                 return half4(col, 1);
             }
             ENDHLSL

@@ -109,7 +109,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_RMOM_Inner:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: b70689fa9f769e94ba71320b6673393b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_RMOM_Outer:
@@ -155,8 +155,8 @@ Material:
     - _AOScale_Iris: 1
     - _AOScale_Outer: 1
     - _BaseColorTint_Outer: 1
-    - _CausticContrast: 18.5
-    - _CausticIntensity: 2
+    - _CausticContrast: 15
+    - _CausticIntensity: 8
     - _Compare: 8
     - _CorneaRoughness: 0.05
     - _DetailNormalScale: 1
@@ -180,7 +180,7 @@ Material:
     - _MetallicScale_Outer: 0.1
     - _MinThicknessNormalized: 0.0045
     - _NormalScale: 0.65
-    - _NormalScale_Inner: 1
+    - _NormalScale_Inner: 0.25
     - _NormalScale_Iris: 1.34
     - _NormalScale_K: 0.52
     - _NormalScale_Outer: 1
@@ -190,7 +190,7 @@ Material:
     - _PupilSmoothness: 0.107
     - _ReceiveDirectionalShadow: 1
     - _RoughnessScale: 0.15
-    - _RoughnessScale_Inner: 0.05
+    - _RoughnessScale_Inner: 0.5
     - _RoughnessScale_Iris: 1
     - _RoughnessScale_Outer: 0.05
     - _SSS_n: 3
@@ -213,7 +213,7 @@ Material:
     - _Iris_Color1: {r: 0.057137664, g: 0.46768337, b: 0.67295593, a: 1}
     - _Iris_Color2: {r: 0.6855345, g: 0.6855345, b: 0.6855345, a: 1}
     - _LimbusColor: {r: 0.187097, g: 0.21154222, b: 0.27672952, a: 1}
-    - _Test: {r: 50, g: 4.2, b: 0, a: 0}
+    - _Test: {r: 0, g: 4.2, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: -0.08, b: 0, a: 0}
     - _TransmittanceTint: {r: 0.5597484, g: 0.01662619, b: 0, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
