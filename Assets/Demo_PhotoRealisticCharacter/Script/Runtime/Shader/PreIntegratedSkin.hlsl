@@ -76,12 +76,11 @@ float3 EvaluateSpecularDirectLight(
         float3 v,
         float3 l,
         float3 lightColor,
-        float roughness,
-        float specIntensity, 
+        float roughness, 
         float NoLBias, 
         float shadow)
 {
-    float specPower = exp2((1-roughness) * specIntensity); // remap to be more linear
+    float specPower = exp2((1-roughness) * 13); // remap to be more linear
 
     float3 h = normalize(v + l);
     float NoH = saturate(dot(n_high, h));

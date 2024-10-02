@@ -26,7 +26,6 @@ Shader "PRC/Skin_PISSS"
 
         [Header(Specular)]
         [Space(10)]
-        _DirectionalSpecularIntensity ("Directional Specular Intensity", Range(0, 15)) = 8
         _DirectionalSpecularIrradianceBias ("Directional Specular Irradiance Bias", Range(-1, 1)) = 0.725
         [Space(20)]
         
@@ -301,7 +300,6 @@ Shader "PRC/Skin_PISSS"
             float2 _TransScaleBiasEnv;
             float _MinThicknessNormalized;
             float3 _WrapLighting;
-            float _DirectionalSpecularIntensity;
             float _DirectionalSpecularIrradianceBias;
 
             #include "PreIntegratedSkin.hlsl"
@@ -322,9 +320,10 @@ Shader "PRC/Skin_PISSS"
             {   
                 // TEX 
                 float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, IN.uv).rgb;
-                float3 transmittanceColor = max(_TransmittanceTint, _TransmittanceTint * baseColor);
+                float3 transmittanceColor = _TransmittanceTint * baseColor;
                 float4 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, IN.uv);
                 float ao = lerp(0, 1, rmo.b * _AOScale);
+                float thickness_env = SAMPLE_TEXTURE2D(_T_Thickness, SamplerState_Linear_Repeat, IN.uv).r;
 
                 // normal 
                 float3 normalTS_high = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, IN.uv, 0));
@@ -375,17 +374,19 @@ Shader "PRC/Skin_PISSS"
                 float NoV_low = saturate(dot(normalWS_low, camDir));
 
                 // Get thickness from cam depth and light depth
-                int unusedSplitIndex;
-                float thicknessNormalized = EvaluateThickness(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, posSS, IN.posWS, normalWS_geom, lightData.shadowIndex, lightDir, unusedSplitIndex);
-                float thickness = max(thicknessNormalized, _MinThicknessNormalized) * LIGHT_FAR_PLANE;
+                // but artefacts
+                // use thickness_env instead 
+                // int unusedSplitIndex;
+                // float thicknessNormalized = EvaluateThickness(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, posSS, IN.posWS, normalWS_geom, lightData.shadowIndex, lightDir, unusedSplitIndex);
+                // float thickness = max(thicknessNormalized, _MinThicknessNormalized) * LIGHT_FAR_PLANE;
 
                 // lighting
                 // diffuse DL
                 float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color.rgb, _WrapLighting, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, shadow);
                 // specular DL
-                float3 specular = EvaluateSpecularDirectLight(normalWS_specular, camDir, lightDir, lightData.color, roughness, _DirectionalSpecularIntensity, _DirectionalSpecularIrradianceBias, shadow);
+                float3 specular = EvaluateSpecularDirectLight(normalWS_specular, camDir, lightDir, lightData.color, roughness, _DirectionalSpecularIrradianceBias, shadow);
                 // trans DL
-                float3 transmittance = EvaluateTransmittanceDirectLight(transmittanceColor, normalWS_geom, lightDir, lightData.color, thickness, _TransScaleBias.xy, _T_LUT_Trans, SamplerState_Linear_Clamp);
+                float3 transmittance = EvaluateTransmittanceDirectLight(transmittanceColor, normalWS_low, lightDir, lightData.color, thickness_env, _TransScaleBias.xy, _T_LUT_Trans, SamplerState_Linear_Clamp);
                 
                 // more transmittance at the edge
                 // less transmittance in the center
@@ -396,7 +397,6 @@ Shader "PRC/Skin_PISSS"
                 float3 irradiance_SH = EvaluateLightProbe(normalWS_low);
                 float3 diffuse_env = irradiance_SH * baseColor * (1-F_env);
                 // trans env 
-                float thickness_env = SAMPLE_TEXTURE2D(_T_Thickness, SamplerState_Linear_Repeat, IN.uv).r;
                 float3 transmittance_env = EvaluateTransmittanceEnv(transmittanceColor, thickness_env, _TransScaleBiasEnv.xy, irradiance_SH, _T_LUT_Trans, SamplerState_Linear_Clamp);
                 // specular env
                 float NoV_detail = saturate(dot(normalWS_specular, camDir));
