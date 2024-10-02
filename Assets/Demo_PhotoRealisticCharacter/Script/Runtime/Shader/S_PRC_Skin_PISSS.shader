@@ -371,7 +371,8 @@ Shader "PRC/Skin_PISSS"
                     float shadow = 1;
                 #endif
 
-                float NoV = saturate(dot(normalWS_high, camDir));
+                float NoV_high = saturate(dot(normalWS_high, camDir));
+                float NoV_low = saturate(dot(normalWS_low, camDir));
 
                 // Get thickness from cam depth and light depth
                 int unusedSplitIndex;
@@ -391,11 +392,9 @@ Shader "PRC/Skin_PISSS"
                 //transmittance *= saturate(pow(1-dot(normalWS_geom, camDir), 2));
 
                 // diffuse env
-                float3 irradiance_SH_R = EvaluateLightProbe(normalWS_low);
-                float3 irradiance_SH_G = EvaluateLightProbe(lerp(normalWS_high, normalWS_low, 0.3));
-                float3 irradiance_SH_B = EvaluateLightProbe(normalWS_high);
-                float3 irradiance_SH = float3(irradiance_SH_R.r, irradiance_SH_G.g, irradiance_SH_B.b);
-                float3 diffuse_env = EvaluateSSSEnv(irradiance_SH, baseColor, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, ao);
+                float3 F_env = Fresnel_Schlick_Fitting(0.028, NoV_low);
+                float3 irradiance_SH = EvaluateLightProbe(normalWS_low);
+                float3 diffuse_env = irradiance_SH * baseColor * (1-F_env);
                 // trans env 
                 float thickness_env = SAMPLE_TEXTURE2D(_T_Thickness, SamplerState_Linear_Repeat, IN.uv).r;
                 float3 transmittance_env = EvaluateTransmittanceEnv(transmittanceColor, thickness_env, _TransScaleBiasEnv.xy, irradiance_SH, _T_LUT_Trans, SamplerState_Linear_Clamp);

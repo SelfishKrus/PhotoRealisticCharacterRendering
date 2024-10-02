@@ -71,17 +71,6 @@ float3 EvaluateSSSDirectLight(
     return SkinSSS(curvature, NoLRGB, texDiffuseLUT, ss) * baseColor * lightColor;
 }
 
-float3 EvaluateSSSEnv(
-        float3 irradiance, 
-        float3 baseColor,
-        float curvature,
-        Texture2D texDiffuseLUT,
-        SamplerState ss,
-        float ao)
-{
-    return SkinSSS(curvature, irradiance * ao, texDiffuseLUT, ss) * baseColor;
-}
-
 float3 EvaluateSpecularDirectLight(
         float3 n_high,
         float3 v,
