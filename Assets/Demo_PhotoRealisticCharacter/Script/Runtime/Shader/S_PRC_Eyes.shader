@@ -12,10 +12,13 @@ Shader "PRC/Eyes"
         _NormalScale_Inner ("Inner Normal Scale", Range(-5,5)) = 1
 
         [Space(10)]
-        _T_RMOM_Inner ("RMO", 2D) = "white" {} 
-        _RoughnessScale_Inner ("Roughness Scale", Range(0, 3)) = 1
-        _MetallicScale_Inner ("Metallic Scale", Range(0, 3)) = 1
-        _AOScale_Inner ("AO Scale", Range(0, 3)) = 1
+        _T_RMOM_Inner ("Inner RMO", 2D) = "white" {} 
+        _RoughnessScale_Inner ("Inner Roughness Scale", Range(0, 3)) = 1
+        _MetallicScale_Inner ("Inner Metallic Scale", Range(0, 3)) = 1
+
+        [Space(10)]
+        _RoughnessScale_Outer ("Outer Roughness Scale", Range(0, 3)) = 1
+        _MetallicScale_Outer ("Outer Metallic Scale", Range(0, 3)) = 1
 
         [Space(10)]
         _T_Height ("Height Map", 2D) = "black" {}
@@ -31,6 +34,9 @@ Shader "PRC/Eyes"
         _SSS_n ("SSS n", Float) = 3
         _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
         [Space(20)]
+
+        _CausticIntensity ("Caustic Intensity", Range(0, 10)) = 2
+        _CausticContrast ("Caustic Contrast", Range(0, 50)) = 2
 
         [Header(Rendering Feature)]
         [Space(10)]
@@ -281,7 +287,8 @@ Shader "PRC/Eyes"
             float _WrapLighting;
             float _RoughnessScale_Inner;
             float _MetallicScale_Inner;
-            float _AOScale_Inner;
+            float _RoughnessScale_Outer;
+            float _MetallicScale_Outer;
             float _NormalScale_Outer;
             float _NormalScale_Inner;
             float _HeightScale;
@@ -289,6 +296,8 @@ Shader "PRC/Eyes"
             float4 _Test;
 
             float _SSS_n;
+            float _CausticIntensity;
+            float _CausticContrast;
 
             #include "K_Utilities.hlsl"
             #include "K_Lighting.hlsl"
@@ -307,13 +316,24 @@ Shader "PRC/Eyes"
 
             half4 frag (Varyings IN) : SV_Target
             {   
-                // NormalTS to NormalWS
-                float3 bitangentWS = cross(IN.normalWS, IN.tangentWS.xyz) * IN.tangentWS.w;
-                float4x4 m_worldToTangent = float4x4(float4(IN.tangentWS.xyz, 0), float4(bitangentWS.xyz, 0), float4(IN.normalWS.xyz, 0), float4(0,0,0,1));
-                float4x4 m_tangentToWorld = transpose(m_worldToTangent);
-                
-                // inner geom normal 
+                // === NORMAL === // 
+                // Outer Normal // 
+                // geom 
+                // flip eye's geom normal to simulate iris structure 
                 float3 posOS = TransformWorldToObject(IN.posWS);
+                float3 normalWS_geom_outer = IN.normalWS;
+
+                float3 bitangentWS = cross(IN.normalWS, IN.tangentWS.xyz) * IN.tangentWS.w;
+                float4x4 m_worldToTangent_outer = float4x4(float4(IN.tangentWS.xyz, 0), float4(bitangentWS.xyz, 0), float4(IN.normalWS.xyz, 0), float4(0,0,0,1));
+                float4x4 m_tangentToWorld_outer = transpose(m_worldToTangent_outer);
+
+                // outer normal
+                float3 normalTS_high_outer = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Outer, SamplerState_Linear_Repeat, IN.uv, 0));
+                normalTS_high_outer = ScaleNormalTS(normalTS_high_outer, _NormalScale_Outer);
+                float3 normalWS_high_outer = mul(m_tangentToWorld_outer, float4(normalTS_high_outer,1)).xyz;
+                
+                // Inner Normal // 
+                // geom 
                 float3 normalOS_geom_inner = normalize(posOS) * float3(1,1,-1);
                 float3 normalWS_geom_inner = TransformObjectToWorldDir(normalOS_geom_inner);
 
@@ -321,6 +341,12 @@ Shader "PRC/Eyes"
                 float4x4 m_worldToTangent_inner = float4x4(float4(IN.tangentWS.xyz, 0), float4(bitangentWS_inner.xyz, 0), float4(normalWS_geom_inner, 0), float4(0,0,0,1));
                 float4x4 m_tangentToWorld_inner = transpose(m_worldToTangent_inner);
 
+                // high 
+                float3 normalTS_high_inner = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Inner, SamplerState_Linear_Repeat, IN.uv, 0));
+                normalTS_high_inner = ScaleNormalTS(normalTS_high_inner, _NormalScale_Inner);
+                float3 normalWS_high_inner = mul(m_tangentToWorld_outer, float4(normalTS_high_inner,1)).xyz;
+
+                // === PARALLAX === // 
                 // height 
                 float height = _HeightScale * 0.1 *SAMPLE_TEXTURE2D(_T_Height, SamplerState_Linear_Repeat, IN.uv).r;
 
@@ -328,88 +354,99 @@ Shader "PRC/Eyes"
                 float3 camDirWS = GetWorldSpaceNormalizeViewDir(IN.posWS);
                 #if defined(IRIS_PARALLAX)
                     float3 frontNormalOS = float3(1.0, 0.0, 0.0);
-                    float2 offsetTS = ParallaxOffset_PhysicallyBased(frontNormalOS, IN.normalWS, camDirWS, height, UNITY_MATRIX_M, m_worldToTangent);
-                #else 
-                    float2 offsetTS = float2(0,0);
+                    float2 offsetTS = ParallaxOffset_PhysicallyBased(frontNormalOS, IN.normalWS, camDirWS, height, UNITY_MATRIX_M, m_worldToTangent_outer);
+                    IN.uv += offsetTS;
                 #endif
-                IN.uv += offsetTS;
 
-                // outer normal
-                float3 normalTS_high_outer = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Outer, SamplerState_Linear_Repeat, IN.uv, 0));
-                normalTS_high_outer = ScaleNormalTS(normalTS_high_outer, _NormalScale_Outer);
-                float3 normalWS_high_outer = mul(m_tangentToWorld, float4(normalTS_high_outer,1)).xyz;
+                // === Surface === // 
+                // Inner // 
+                // rmo
+                float4 rmo_inner = SAMPLE_TEXTURE2D(_T_RMOM_Inner, SamplerState_Linear_Repeat, IN.uv);
+                float roughness_inner = lerp(0.01, 1.0, rmo_inner.r * _RoughnessScale_Inner);
+                float metallic_inner = lerp(0.01, 1.0, rmo_inner.g * _MetallicScale_Inner);
 
-                float3 normalWS_geom = IN.normalWS;
+                float a_inner = roughness_inner * roughness_inner;
+                float a2_inner = a_inner*a_inner;
+                float mipmapLevelLod_inner = PerceptualRoughnessToMipmapLevel(a_inner);
 
-                // inner normal 
-                float3 normalTS_high_inner = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal_Inner, SamplerState_Linear_Repeat, IN.uv, 0));
-                normalTS_high_inner = ScaleNormalTS(normalTS_high_inner, _NormalScale_Inner);
-                float3 normalWS_high_inner = mul(m_tangentToWorld, float4(normalTS_high_inner,1)).xyz;
-               
+                // base color
+                float3 baseColor_inner = SAMPLE_TEXTURE2D(_T_BaseColor_Inner, SamplerState_Linear_Repeat, IN.uv).rgb * _BaseColorTint_Inner;
+                float3 F0_inner = lerp(0.04, baseColor_inner, metallic_inner);
 
-                // Surface // 
-                // rmo 
-                float4 rmo = SAMPLE_TEXTURE2D(_T_RMOM_Inner, SamplerState_Linear_Repeat, IN.uv);
-                float roughness = lerp(0.01, 1.0, rmo.r * _RoughnessScale_Inner);
-                float metallic = lerp(0.01, 1.0, rmo.g * _MetallicScale_Inner);
-                float ao = lerp(0.01, 1.0, rmo.b * _AOScale_Inner);
+                // Outer // 
+                // rmom 
+                float roughness_outer = lerp(0.01, 1.0, _RoughnessScale_Outer);
+                float metallic_outer = lerp(0.01, 1.0, _MetallicScale_Outer);
 
-                float a = roughness * roughness;
-                float a2 = a*a;
-                float mipmapLevelLod = PerceptualRoughnessToMipmapLevel(a);
+                float a_outer = roughness_outer * roughness_outer;
+                float a2_outer = a_outer * a_outer;
+                float mipmapLevelLod_outer = PerceptualRoughnessToMipmapLevel(a_outer);
 
                 // base color 
-                float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor_Inner, SamplerState_Linear_Repeat, IN.uv).rgb * _BaseColorTint_Inner;
-                float3 F0 = lerp(0.04, baseColor, metallic);
+                float3 baseColor_outer = float3(1.0, 1.0, 1.0);
+                float3 F0_outer = lerp(0.04, baseColor_outer, metallic_outer);
 
                 // Mask
                 // r - pupil, g - iris, b - limbus
                 float3 eyeMask = SAMPLE_TEXTURE2D(_T_Mask, SamplerState_Linear_Repeat, IN.uv).rgb;
 
-                // PRE
-
+                // === SHADING VARIABLES === // 
                 DirectionalLightData lightData = _DirectionalLightDatas[0];                
                 float3 lightDirWS = -normalize(lightData.forward);
                 float3 lightDirOS = TransformWorldToObjectDir(lightDirWS);
                 float3 H = normalize(camDirWS + lightDirWS);
-
-                float NoLUnclamped = dot(normalWS_high_outer, lightDirWS);
-                float NoL = saturate(NoLUnclamped);
-                float NoH = saturate(dot(normalWS_high_outer, H));
                 float VoH = saturate(dot(camDirWS, H));
-                float NoV = saturate(dot(normalWS_high_outer, camDirWS));
+
+                // outer 
+                float NoLUnclamped_outer = dot(normalWS_high_outer, lightDirWS);
+                float NoL_outer = saturate(NoLUnclamped_outer);
+                float NoH_outer = saturate(dot(normalWS_high_outer, H));
+                float NoV_outer = saturate(dot(normalWS_high_outer, camDirWS));
+
+                // inner 
+                float NoLUnclamped_inner = dot(normalWS_high_inner, lightDirWS);
+                float NoL_inner = saturate(NoLUnclamped_inner);
+                float NoH_inner = saturate(dot(normalWS_high_inner, H));
+                float NoV_inner = saturate(dot(normalWS_high_inner, camDirWS));
 
                 // Get directional light shadows 
                 float2 posSS = IN.pos.xy / _ScreenParams.xy;
                 HDShadowContext shadowContext = InitShadowContext();
                 #if defined(RECEIVE_DIRECTIONAL_SHADOW)
                     float shadow = GetDirectionalShadowAttenuation(shadowContext,
-					                    posSS, IN.posWS, normalWS_geom,
+					                    posSS, IN.posWS, normalWS_geom_outer,
 					                    lightData.shadowIndex, lightDirWS);
                 #else 
                     float shadow = 1;
                 #endif
 
-                // directional specular 
-                float D = NDF_GGX(a2, NoH);
-                float3 F = Fresnel_Schlick_Fitting(F0, VoH);
-                float V = Vis_Schlick(a2, NoV, NoL);
-                float3 directionalSpecularBRDF_outer = D * F * V;
-                float3 directionalIrradiance_outer = lightData.color * NoL * shadow;
+                // === SHADING === // 
+                // Outer // 
+                // directional specular - outer 
+                float D_outer = NDF_GGX(a2_outer, NoH_outer);
+                float3 F_outer = Fresnel_Schlick_Fitting(F0_outer, VoH);
+                float V_outer = Vis_Schlick(a2_outer, NoV_outer, NoL_outer);
+                float3 directionalSpecularBRDF_outer = D_outer * F_outer * V_outer;
+                float3 directionalIrradiance_outer = lightData.color * NoL_outer * shadow;
                 float3 directionalSpecular_outer = directionalSpecularBRDF_outer * directionalIrradiance_outer;
 
                 // environment specular - outer 
                 float3 reflectDir = reflect(-camDirWS, normalWS_high_outer);
-                float3 envBRDF_outer = EnvBRDF(F0, roughness, NoV);
-                float3 envIrradiance = SampleSkyTexture(reflectDir, mipmapLevelLod, 0).rgb;
+                float3 envBRDF_outer = EnvBRDF(F0_outer, roughness_outer, NoV_outer);
+                float3 envIrradiance = SampleSkyTexture(reflectDir, mipmapLevelLod_outer, 0).rgb;
                 float3 envSpecular_outer = envBRDF_outer * envIrradiance;
 
-                float3 specular = directionalSpecular_outer + envSpecular_outer;
+                // Inner // 
+                // directional caustic - inner 
+                float3 mirrorDir = float3(1,1,-1);
+                float3 caustic_inner = baseColor_inner * ComputeCaustic(normalWS_geom_inner, lightDirWS, _CausticIntensity, _CausticContrast) * eyeMask.g;
+
+                // environment specular - inner 
+                float3 reflectDir_inner = reflect(-camDirWS, normalWS_high_inner);
+
 
                 // directional diffuse - inner
-                float NoL_inner = saturate(dot(normalWS_high_inner, lightDirWS));
-
-                float3 directionalDiffuseBRDF = Diffuse_Lambert(baseColor);
+                float3 directionalDiffuseBRDF = Diffuse_Lambert(baseColor_inner);
 
                 #if defined(SCLERA_SSS)
                     float n = _SSS_n;
@@ -418,22 +455,16 @@ Shader "PRC/Eyes"
                     float3 directionalDiffuseIrradiance = directionalIrradiance_outer;
                 #endif 
 
-                float3 directionalDiffuse = directionalDiffuseBRDF * directionalDiffuseIrradiance;
+                float3 directionalDiffuse_inner = directionalDiffuseBRDF * directionalDiffuseIrradiance;
 
-                // environment diffuse 
-                float3 envSH = EvaluateLightProbe(normalWS_geom);
-                float3 envDiffuse = baseColor * envSH;
+                // environment diffuse - inner 
+                float3 envSH = EvaluateLightProbe(normalWS_geom_outer);
+                float3 envDiffuse_inner = baseColor_inner * envSH;
 
-                float3 diffuse = directionalDiffuse + envDiffuse;
+                float3 diffuse = directionalDiffuse_inner + envDiffuse_inner;
+                float3 specular = directionalSpecular_outer + envSpecular_outer;
 
-                // directional caustic
-                float3 mirrorDir = float3(1,1,-1);
-                float3 caustic = baseColor * ComputeCaustic(normalWS_geom_inner, lightDirWS) * eyeMask.g;
-
-                // IRIS SHADING - END // 
-
-                float3 col = specular + diffuse + caustic;
-                col = directionalDiffuse;
+                float3 col = specular + diffuse + caustic_inner;
                 return half4(col, 1);
             }
             ENDHLSL

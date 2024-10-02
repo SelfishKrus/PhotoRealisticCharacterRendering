@@ -88,6 +88,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: ab100f5535950c84cb1d96fbe5b98c1d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _T_Normal_Inner:
+        m_Texture: {fileID: 2800000, guid: 0f0703a8004022a468f38e87237114ee, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _T_Normal_Iris:
         m_Texture: {fileID: 2800000, guid: ac837942544c3854b88236d4e78ab043, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -105,6 +109,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_RMOM_Inner:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_RMOM_Outer:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -147,8 +155,8 @@ Material:
     - _AOScale_Iris: 1
     - _AOScale_Outer: 1
     - _BaseColorTint_Outer: 1
-    - _CausticContrast: 3.3
-    - _CausticIntensity: 1
+    - _CausticContrast: 18.5
+    - _CausticIntensity: 2
     - _Compare: 8
     - _CorneaRoughness: 0.05
     - _DetailNormalScale: 1
@@ -169,9 +177,10 @@ Material:
     - _MetallicScale: 0
     - _MetallicScale_Inner: 0
     - _MetallicScale_Iris: 1
-    - _MetallicScale_Outer: 1
+    - _MetallicScale_Outer: 0.1
     - _MinThicknessNormalized: 0.0045
     - _NormalScale: 0.65
+    - _NormalScale_Inner: 1
     - _NormalScale_Iris: 1.34
     - _NormalScale_K: 0.52
     - _NormalScale_Outer: 1
@@ -183,7 +192,7 @@ Material:
     - _RoughnessScale: 0.15
     - _RoughnessScale_Inner: 0.05
     - _RoughnessScale_Iris: 1
-    - _RoughnessScale_Outer: 1
+    - _RoughnessScale_Outer: 0.05
     - _SSS_n: 3
     - _ScleraSSS: 1
     - _SpecularReflectance: 0.028
@@ -204,7 +213,7 @@ Material:
     - _Iris_Color1: {r: 0.057137664, g: 0.46768337, b: 0.67295593, a: 1}
     - _Iris_Color2: {r: 0.6855345, g: 0.6855345, b: 0.6855345, a: 1}
     - _LimbusColor: {r: 0.187097, g: 0.21154222, b: 0.27672952, a: 1}
-    - _Test: {r: 1.04, g: 0.13, b: 0, a: 0}
+    - _Test: {r: 50, g: 4.2, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: -0.08, b: 0, a: 0}
     - _TransmittanceTint: {r: 0.5597484, g: 0.01662619, b: 0, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}

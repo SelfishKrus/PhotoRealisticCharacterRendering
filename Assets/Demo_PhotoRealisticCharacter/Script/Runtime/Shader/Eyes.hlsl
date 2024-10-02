@@ -71,10 +71,10 @@ float3 GetIrisTint(float3 irisColor_inner, float3 irisColor_outer, float3 limbus
 }
 
 // ref: Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl
-float ComputeCaustic(float3 normal, float3 lightDir)
+float ComputeCaustic(float3 normal, float3 lightDir, float intensity, float contrast)
 {
     
-    float causticIris = 2 * pow(saturate(dot(normal, lightDir)), 2);
+    float causticIris = intensity * pow(saturate(dot(normal, lightDir)), contrast);
     // float causticSclera = min(2000.0 * pow(saturate(dot(-normalize(pos.xyz), lightDir.xyz)), 20), 100.0);
     
     return causticIris;
