@@ -26,6 +26,7 @@ Shader "PRC/Eyes"
 
         [Space(10)]
         _T_Mask ("Mask", 2D) = "white" {}
+        _ScleraEnvReflcOffset ("Sclera Env Reflc Offset", Range(0, 0.5)) = 0.05
 
         [Space(20)]
 
@@ -298,6 +299,7 @@ Shader "PRC/Eyes"
             float _SSS_n;
             float _CausticIntensity;
             float _CausticContrast;
+            float _ScleraEnvReflcOffset;
 
             #include "K_Utilities.hlsl"
             #include "K_Lighting.hlsl"
@@ -437,7 +439,7 @@ Shader "PRC/Eyes"
                 float3 directionalSpecular_outer = directionalSpecularBRDF_outer * directionalIrradiance_outer;
 
                 // environment specular - outer 
-                float3 reflectDir = reflect(-camDirWS, normalWS_high_outer);
+                float3 reflectDir = reflect(-camDirWS, lerp(normalWS_high_outer, float3(0,1,0), _ScleraEnvReflcOffset));
                 float3 envBRDF_outer = EnvBRDF(F0_outer, roughness_outer, NoV_outer);
                 float3 envIrradiance = SampleSkyTexture(reflectDir, mipmapLevelLod_outer, 0).rgb;
                 float3 envSpecular_outer = envBRDF_outer * envIrradiance;

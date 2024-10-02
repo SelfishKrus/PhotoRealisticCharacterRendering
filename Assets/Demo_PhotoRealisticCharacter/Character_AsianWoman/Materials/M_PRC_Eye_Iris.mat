@@ -155,8 +155,8 @@ Material:
     - _AOScale_Iris: 1
     - _AOScale_Outer: 1
     - _BaseColorTint_Outer: 1
-    - _CausticContrast: 18
-    - _CausticIntensity: 5
+    - _CausticContrast: 20
+    - _CausticIntensity: 2
     - _Compare: 8
     - _CorneaRoughness: 0.05
     - _DetailNormalScale: 1
@@ -192,8 +192,9 @@ Material:
     - _RoughnessScale: 0.15
     - _RoughnessScale_Inner: 0.513
     - _RoughnessScale_Iris: 1
-    - _RoughnessScale_Outer: 0.05
+    - _RoughnessScale_Outer: 0.15
     - _SSS_n: 3
+    - _ScleraEnvReflcOffset: 0
     - _ScleraSSS: 1
     - _SpecularReflectance: 0.028
     - _StencilMask: 192
@@ -213,7 +214,7 @@ Material:
     - _Iris_Color1: {r: 0.057137664, g: 0.46768337, b: 0.67295593, a: 1}
     - _Iris_Color2: {r: 0.6855345, g: 0.6855345, b: 0.6855345, a: 1}
     - _LimbusColor: {r: 0.187097, g: 0.21154222, b: 0.27672952, a: 1}
-    - _Test: {r: 0, g: 4.2, b: 0, a: 0}
+    - _Test: {r: 0.05, g: 4.2, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: -0.08, b: 0, a: 0}
     - _TransmittanceTint: {r: 0.5597484, g: 0.01662619, b: 0, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
