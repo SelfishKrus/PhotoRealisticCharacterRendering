@@ -1,6 +1,9 @@
 ﻿#ifndef K_UTILITIES_INCLUDED
 #define K_UTILITIES_INCLUDED
 
+SAMPLER(SamplerState_Linear_Repeat);
+SAMPLER(SamplerState_Linear_Clamp);
+
 float3 ScaleNormalTS(float3 normalTS, float scale)
 {
     normalTS.xy *= scale;

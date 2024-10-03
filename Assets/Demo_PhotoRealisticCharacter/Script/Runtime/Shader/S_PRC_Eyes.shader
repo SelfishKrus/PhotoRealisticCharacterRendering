@@ -273,8 +273,6 @@ Shader "PRC/Eyes"
 
             float4 _T_DetailNormal_ST;
 
-            SAMPLER(SamplerState_Linear_Repeat);
-            SAMPLER(SamplerState_Linear_Clamp);
             TEXTURE2D(_T_BaseColor_Inner);
             TEXTURE2D(_T_Normal_Outer);
             TEXTURE2D(_T_Normal_Inner);

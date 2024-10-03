@@ -282,8 +282,6 @@ Shader "PRC/Hair"
 
             float4 _T_DetailNormal_ST;
 
-            SAMPLER(SamplerState_Linear_Repeat);
-            SAMPLER(SamplerState_Linear_Clamp);
             TEXTURE2D(_T_BaseColor);
             TEXTURE2D(_T_Normal);
             TEXTURE2D(_T_Rmo);
@@ -296,6 +294,7 @@ Shader "PRC/Hair"
             float4 _Test;
 
             #include "K_Lighting.hlsl"
+            #include "PRC_Hair.hlsl"
 
             Varyings vert (Attributes IN)
             {
@@ -310,7 +309,6 @@ Shader "PRC/Hair"
 
             half4 frag (Varyings IN) : SV_Target
             {   
-
  
                 float3 col = 0;
                 return half4(col, 1);
