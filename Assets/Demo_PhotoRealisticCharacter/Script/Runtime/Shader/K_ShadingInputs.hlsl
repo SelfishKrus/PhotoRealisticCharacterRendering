@@ -1,8 +1,13 @@
 ﻿#ifndef K_SHADING_INPUTS_INCLUDED
 #define K_SHADING_INPUTS_INCLUDED
 
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+
     struct ShadingInputs
-    {
+    {   
+        float3 V;
+        float3 L;
         float3 H;
 
         float NoL_wrap;
@@ -13,21 +18,23 @@
         float VoH;
     };
 
-    ShadingInputs GetShadingInputs(float3 n, float3 v, float3 l, float wrap)
+    ShadingInputs GetShadingInputs(float3 n, float3 posWS, float wrap)
     {
         ShadingInputs inputs;
 
-        float3 h = normalize(v+l);
-        float NoLUnclamped = dot(n, l);
+        DirectionalLightData lightData = _DirectionalLightDatas[0];
+        inputs.L = -normalize(lightData.forward);
+        inputs.V = GetWorldSpaceNormalizeViewDir(posWS);
+        inputs.H = normalize(inputs.V + inputs.L);
 
-        inputs.H = h;
+        float NoLUnclamped = dot(n, inputs.L);
 
         inputs.NoL_wrap = (NoLUnclamped + wrap) / (1.0f + wrap);
         inputs.NoL = saturate(NoLUnclamped);
-        inputs.NoH = saturate(dot(n, h));
-        inputs.NoV = saturate(dot(n, v));
-        inputs.LoH = saturate(dot(l, h));
-        inputs.VoH = saturate(dot(v, h));
+        inputs.NoH = saturate(dot(n, inputs.H));
+        inputs.NoV = saturate(dot(n, inputs.V));
+        inputs.LoH = saturate(dot(inputs.L, inputs.H));
+        inputs.VoH = saturate(dot(inputs.V, inputs.H));
 
         return inputs;
     }

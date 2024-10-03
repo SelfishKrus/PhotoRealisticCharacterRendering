@@ -13,7 +13,7 @@
         float detailMask;
 
         float3 normalWS_high;
-
+        float3 normalWS_geom;
     };
 
     ShadingSurface GetShadingSurface(Texture2D baseColorMap, float3 tint, Texture2D rmomMap, float3 rmoScale, Texture2D normalMap, float normalScale, float3 normalWS_geom, float4 tangentWS_geom, SamplerState ss, float2 uv)
@@ -29,6 +29,7 @@
         float3 normalTS = UnpackNormal_K(normalMap, ss, uv, normalScale);
         float3x3 m_tangentToWorld = GetTangentToWorldMatrix(normalWS_geom, tangentWS_geom);
         surf.normalWS_high = mul(m_tangentToWorld, normalTS);
+        surf.normalWS_geom = normalWS_geom;
 
         return surf;
     }
