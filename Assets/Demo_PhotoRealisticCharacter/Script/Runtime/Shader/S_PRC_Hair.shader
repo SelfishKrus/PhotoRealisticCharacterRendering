@@ -18,9 +18,14 @@ Shader "PRC/Hair"
         [Space(20)]
 
         _T_Shift ("Shift Map", 2D) = "white" {}
-        _PrimarayShift ("Primary Shift", Range(-1, 1)) = 0
-        _SecondaryShift ("Secondary Shift", Range(-1, 1)) = 0
+        _SpecularRShift ("Specular R Shift", Range(-5, 5)) = 0
+        _SpecularTRTShift ("Specular TRT Shift", Range(-5, 5)) = 0
         [Space(20)]
+
+        _SpecularRGloss ("Specular R Gloss", Range(0, 200)) = 50
+        _SpecularTRTGloss ("Specular TRT Gloss", Range(0, 200)) = 10
+        [Space(20)]
+
         
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
         [Space(20)]
@@ -247,6 +252,7 @@ Shader "PRC/Hair"
             }
 
             ZWrite On
+            Cull Off
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -263,7 +269,6 @@ Shader "PRC/Hair"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
-
 
             #define DIRECTIONAL_SHADOW_HIGH
 
@@ -299,8 +304,10 @@ Shader "PRC/Hair"
             float _NormalScale_K;
             float4 _Test;
 
-            float _PrimarayShift;
-            float _SecondaryShift;
+            float _SpecularRShift;
+            float _SpecularTRTShift;
+            float _SpecularRGloss;
+            float _SpecularTRTGloss;
 
             #include "K_Utilities.hlsl"
             #include "K_ShadingInputs.hlsl"
@@ -321,28 +328,31 @@ Shader "PRC/Hair"
 
             half4 frag (Varyings IN) : SV_Target
             {   
-                // Normal
+                // Surface
                 ShadingSurface surf = GetShadingSurface(_T_BaseColor, _BaseColorTint, _T_Rmo, float3(_RoughnessScale, _MetallicScale, _AOScale), _T_Normal, _NormalScale_K, IN.normalWS, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
 
-                // Pre
-                DirectionalLightData lightData = _DirectionalLightDatas[0];
-                float3 lightDirWS = -normalize(lightData.forward);
-                float3 camDirWS = GetWorldSpaceNormalizeViewDir(IN.posWS);
-                ShadingInputs si = GetShadingInputs(surf.normalWS_high, camDirWS, lightDirWS, _WrapLighting);
+                clip(surf.alpha - 0.33);
 
-                // Surface 
+                // Shading Variables 
+                DirectionalLightData lightData = _DirectionalLightDatas[0];
+
+                ShadingInputs si = GetShadingInputs(surf.normalWS_high, IN.posWS, lightData, _WrapLighting);
 
                 // Shading 
                 // shift tangents 
                 float shift = SAMPLE_TEXTURE2D(_T_Shift, SamplerState_Linear_Repeat, IN.uv).r - 0.5;
-                float3 t1 = ShiftTangent_PRC(IN.tangentWS, surf.normalWS_high, shift + _PrimarayShift);
-                float3 t2 = ShiftTangent_PRC(IN.tangentWS, surf.normalWS_high, shift + _SecondaryShift);
+                float3 t1 = ShiftTangent_PRC(surf.bitangentWS_geom, surf.normalWS_high, shift + _SpecularRShift);
+                float3 t2 = ShiftTangent_PRC(surf.bitangentWS_geom, surf.normalWS_high, shift + _SpecularTRTShift);
 
-                // 
+                // diffuse 
+                float3 diffuse = si.NoL_wrap * surf.baseColor;
+
+                // specular
+                float3 specular_R = lightData.color * StrandSpecular(t1, si.H, _SpecularRGloss);
+                float3 specular_TRT = _BaseColorTint * lightData.color * StrandSpecular(t2, si.H, _SpecularTRTGloss);
  
-                float3 col = 0;
-                col = surf.normalWS_high;
-                return half4(col, 1);
+                float3 col = diffuse + specular_R + specular_TRT;
+                return half4(col, surf.alpha);
             }
             ENDHLSL
         }
