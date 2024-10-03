@@ -18,11 +18,10 @@
         float VoH;
     };
 
-    ShadingInputs GetShadingInputs(float3 n, float3 posWS, float wrap)
+    ShadingInputs GetShadingInputs(float3 n, float3 posWS, DirectionalLightData lightData, float wrap)
     {
         ShadingInputs inputs;
 
-        DirectionalLightData lightData = _DirectionalLightDatas[0];
         inputs.L = -normalize(lightData.forward);
         inputs.V = GetWorldSpaceNormalizeViewDir(posWS);
         inputs.H = normalize(inputs.V + inputs.L);
