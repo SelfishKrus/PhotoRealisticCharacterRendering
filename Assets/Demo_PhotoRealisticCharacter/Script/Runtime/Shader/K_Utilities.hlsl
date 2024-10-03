@@ -22,18 +22,17 @@
         return normalTS;
     }
 
-    float4x4 GetWorldToTangentMatrix(float3 normalWS, float4 tangentWS)
+    float3x3 GetWorldToTangentMatrix(float3 normalWS, float4 tangentWS)
     {
         float3 bitangentWS = cross(normalWS, tangentWS.xyz) * tangentWS.w;
-        return float4x4(
-            float4(tangentWS.xyz, 0),
-            float4(bitangentWS.xyz, 0),
-            float4(normalWS.xyz, 0),
-            float4(0, 0, 0, 1)
+        return float3x3(
+            float3(tangentWS.xyz),
+            float3(bitangentWS.xyz),
+            float3(normalWS.xyz)
         );
     }
 
-    float4x4 GetTangentToWorldMatrix(float3 normalWS, float4 tangentWS)
+    float3x3 GetTangentToWorldMatrix(float3 normalWS, float4 tangentWS)
     {
         return transpose(GetWorldToTangentMatrix(normalWS, tangentWS));
     }

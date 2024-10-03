@@ -293,6 +293,8 @@ Shader "PRC/Hair"
             float _NormalScale_K;
             float4 _Test;
 
+            #include "K_Utilities.hlsl"
+            #include "K_ShadingInputs.hlsl"
             #include "K_Lighting.hlsl"
             #include "PRC_Hair.hlsl"
 
@@ -300,17 +302,29 @@ Shader "PRC/Hair"
             {
                 Varyings OUT;
                 OUT.pos = TransformObjectToHClip(IN.posOS.xyz);
-                OUT.posWS = TransformObjectToWorld(IN.posOS);
-                OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS);
-                OUT.tangentWS = float4(TransformObjectToWorldDir(IN.tangentOS).rgb, IN.tangentOS.w);
+                OUT.posWS = TransformObjectToWorld(IN.posOS.xyz);
+                OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS.xyz);
+                OUT.tangentWS = float4(TransformObjectToWorldDir(IN.tangentOS.rgb), IN.tangentOS.w);
                 OUT.uv = IN.uv;
                 return OUT;
             }
 
             half4 frag (Varyings IN) : SV_Target
             {   
+                // Normal
+                float3 normalTS_high = UnpackNormal_K(_T_Normal, SamplerState_Linear_Repeat, IN.uv, _NormalScale_K);
+                float3x3 m_tangentToWorld = GetTangentToWorldMatrix(IN.normalWS, IN.tangentWS);
+                float3 normalWS_high = mul(m_tangentToWorld, normalTS_high);
+
+                // Pre
+                DirectionalLightData lightData = _DirectionalLightDatas[0];
+                float3 lightDirWS = -normalize(lightData.forward);
+                float3 camDirWS = GetWorldSpaceNormalizeViewDir(IN.posWS);
+
+                ShadingInputs si = GetShadingInputs(normalWS_high, camDirWS, lightDirWS, _WrapLighting);
  
                 float3 col = 0;
+                col = normalWS_high;
                 return half4(col, 1);
             }
             ENDHLSL
