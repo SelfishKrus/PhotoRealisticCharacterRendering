@@ -8,4 +8,13 @@
         return normalize(shiftedT);
     }
 
+    float StrandSpecular (float3 t, float3 h, float exp)
+    {
+        float ToH = dot(t, h);
+        float sinTH = sqrt(1.0 - ToH * ToH);
+        float dirAtten = smoothstep(-1.0, 0.0, ToH);
+
+        return dirAtten * pow(sinTH, exp);
+    }
+
 #endif 

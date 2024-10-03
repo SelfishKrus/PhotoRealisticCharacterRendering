@@ -4,6 +4,7 @@
     SAMPLER(SamplerState_Linear_Repeat);
     SAMPLER(SamplerState_Linear_Clamp);
 
+    // === NORMAL === // 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
     float3 ScaleNormalTS(float3 normalTS, float scale)

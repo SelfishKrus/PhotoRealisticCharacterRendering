@@ -5,6 +5,7 @@ Shader "PRC/Hair"
         [Header(Base Map)]
         [Space(10)]
         _T_BaseColor ("Texture", 2D) = "white" {}
+        _BaseColorTint ("Tint", Color) = (1,1,1,1)
         _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
         _T_Normal ("Normal Map", 2D) = "bump" {}
         _NormalScale_K ("Normal Scale", Range(0,5)) = 1
@@ -16,6 +17,9 @@ Shader "PRC/Hair"
         _AOScale ("AO Scale", Range(0, 1.5)) = 1
         [Space(20)]
 
+        _T_Shift ("Shift Map", 2D) = "white" {}
+        _PrimarayShift ("Primary Shift", Range(-1, 1)) = 0
+        _SecondaryShift ("Secondary Shift", Range(-1, 1)) = 0
         [Space(20)]
         
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
@@ -285,7 +289,9 @@ Shader "PRC/Hair"
             TEXTURE2D(_T_BaseColor);
             TEXTURE2D(_T_Normal);
             TEXTURE2D(_T_Rmo);
+            TEXTURE2D(_T_Shift);
 
+            float3 _BaseColorTint;
             float _WrapLighting;
             float _RoughnessScale;
             float _MetallicScale;
@@ -293,8 +299,12 @@ Shader "PRC/Hair"
             float _NormalScale_K;
             float4 _Test;
 
+            float _PrimarayShift;
+            float _SecondaryShift;
+
             #include "K_Utilities.hlsl"
             #include "K_ShadingInputs.hlsl"
+            #include "K_ShadingSurface.hlsl"
             #include "K_Lighting.hlsl"
             #include "PRC_Hair.hlsl"
 
@@ -312,19 +322,26 @@ Shader "PRC/Hair"
             half4 frag (Varyings IN) : SV_Target
             {   
                 // Normal
-                float3 normalTS_high = UnpackNormal_K(_T_Normal, SamplerState_Linear_Repeat, IN.uv, _NormalScale_K);
-                float3x3 m_tangentToWorld = GetTangentToWorldMatrix(IN.normalWS, IN.tangentWS);
-                float3 normalWS_high = mul(m_tangentToWorld, normalTS_high);
+                ShadingSurface surf = GetShadingSurface(_T_BaseColor, _BaseColorTint, _T_Rmo, float3(_RoughnessScale, _MetallicScale, _AOScale), _T_Normal, _NormalScale_K, IN.normalWS, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
 
                 // Pre
                 DirectionalLightData lightData = _DirectionalLightDatas[0];
                 float3 lightDirWS = -normalize(lightData.forward);
                 float3 camDirWS = GetWorldSpaceNormalizeViewDir(IN.posWS);
+                ShadingInputs si = GetShadingInputs(surf.normalWS_high, camDirWS, lightDirWS, _WrapLighting);
 
-                ShadingInputs si = GetShadingInputs(normalWS_high, camDirWS, lightDirWS, _WrapLighting);
+                // Surface 
+
+                // Shading 
+                // shift tangents 
+                float shift = SAMPLE_TEXTURE2D(_T_Shift, SamplerState_Linear_Repeat, IN.uv).r - 0.5;
+                float3 t1 = ShiftTangent_PRC(IN.tangentWS, surf.normalWS_high, shift + _PrimarayShift);
+                float3 t2 = ShiftTangent_PRC(IN.tangentWS, surf.normalWS_high, shift + _SecondaryShift);
+
+                // 
  
                 float3 col = 0;
-                col = normalWS_high;
+                col = surf.normalWS_high;
                 return half4(col, 1);
             }
             ENDHLSL
