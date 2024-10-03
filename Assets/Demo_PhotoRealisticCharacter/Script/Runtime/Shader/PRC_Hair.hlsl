@@ -1,6 +1,7 @@
 ﻿#ifndef PRC_HAIR_INCLUDED
 #define PRC_HAIR_INCLUDED
-
+    
+    // Kajiya-Kay Hair Model
     // GDC 2004 - ATI Research - Hair Rendering and Shading 
     float3 ShiftTangent_PRC (float3 t, float3 n, float shift)
     {
@@ -15,6 +16,17 @@
         float dirAtten = smoothstep(-1.0, 0.0, ToH);
 
         return dirAtten * pow(sinTH, exp);
+    }
+
+    float3 KajiyaKaySpecular (float shift1, float shift2, float3 tangent, float3 normal, float3 h, float3 lightColor, float3 baseColor, float gloss1, float gloss2)
+    {
+        float3 t1 = ShiftTangent_PRC(tangent, normal, shift1);
+        float3 t2 = ShiftTangent_PRC(tangent, normal, shift2);
+
+        float3 specular_R = lightColor * StrandSpecular(t1, h, gloss1);
+        float3 specular_TRT = baseColor * lightColor * StrandSpecular(t2, h, gloss2);
+
+        return specular_R + specular_TRT;
     }
 
 #endif 

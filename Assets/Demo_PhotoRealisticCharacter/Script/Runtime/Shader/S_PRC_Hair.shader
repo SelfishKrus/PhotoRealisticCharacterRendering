@@ -26,7 +26,6 @@ Shader "PRC/Hair"
         _SpecularTRTGloss ("Specular TRT Gloss", Range(0, 200)) = 10
         [Space(20)]
 
-        
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
         [Space(20)]
 
@@ -338,20 +337,16 @@ Shader "PRC/Hair"
 
                 ShadingInputs si = GetShadingInputs(surf.normalWS_high, IN.posWS, lightData, _WrapLighting);
 
-                // Shading 
-                // shift tangents 
-                float shift = SAMPLE_TEXTURE2D(_T_Shift, SamplerState_Linear_Repeat, IN.uv).r - 0.5;
-                float3 t1 = ShiftTangent_PRC(surf.bitangentWS_geom, surf.normalWS_high, shift + _SpecularRShift);
-                float3 t2 = ShiftTangent_PRC(surf.bitangentWS_geom, surf.normalWS_high, shift + _SpecularTRTShift);
-
+                // Shading // 
                 // diffuse 
                 float3 diffuse = si.NoL_wrap * surf.baseColor;
 
                 // specular
-                float3 specular_R = lightData.color * StrandSpecular(t1, si.H, _SpecularRGloss);
-                float3 specular_TRT = _BaseColorTint * lightData.color * StrandSpecular(t2, si.H, _SpecularTRTGloss);
+                float shift = SAMPLE_TEXTURE2D(_T_Shift, SamplerState_Linear_Repeat, IN.uv).r - 0.5;
+                float3 specular = KajiyaKaySpecular(shift+_SpecularRShift, shift+_SpecularTRTShift, surf.bitangentWS_geom, surf.normalWS_high, si.H, lightData.color, _BaseColorTint, _SpecularRGloss, _SpecularTRTGloss);
+
  
-                float3 col = diffuse + specular_R + specular_TRT;
+                float3 col = diffuse + specular;
                 return half4(col, surf.alpha);
             }
             ENDHLSL
