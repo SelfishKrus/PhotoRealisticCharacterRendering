@@ -72,6 +72,14 @@
 		float Fc = pow(1 - VoH, 5);
 		return F90 * Fc + (1 - Fc) * F0;
 	}
+	
+	// https://seblagarde.wordpress.com/2011/08/17/hello-world/
+	float3 Fresnel_Schlick_Roughness(float3 F0, float cosTheta, float roughness)
+	{	
+		float3 gloss = 1 - roughness;
+		return F0 + (max(gloss, F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+	}
+
 
 	// Fresnel - UE Schilick 
 	float3 Fresnel_Schlick_Fitting(float3 F0, float cosTheta)

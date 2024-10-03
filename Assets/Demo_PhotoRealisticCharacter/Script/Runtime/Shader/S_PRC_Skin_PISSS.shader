@@ -393,9 +393,9 @@ Shader "PRC/Skin_PISSS"
                 //transmittance *= saturate(pow(1-dot(normalWS_geom, camDir), 2));
 
                 // diffuse env
-                float3 F_env = Fresnel_Schlick_Fitting(0.028, NoV_low);
+                float3 F_env = Fresnel_Schlick_Roughness(0.028, NoV_low, roughness);
                 float3 irradiance_SH = EvaluateLightProbe(normalWS_low);
-                float3 diffuse_env = irradiance_SH * baseColor * (1-F_env);
+                float3 diffuse_env = irradiance_SH * baseColor * (1 - F_env) * ao;
                 // trans env 
                 float3 transmittance_env = EvaluateTransmittanceEnv(transmittanceColor, thickness_env, _TransScaleBiasEnv.xy, irradiance_SH, _T_LUT_Trans, SamplerState_Linear_Clamp);
                 // specular env
@@ -410,6 +410,7 @@ Shader "PRC/Skin_PISSS"
                 float3 lighting_env = transmittance_env + specular_env + diffuse_env;
                 
                 float3 col = lighting_DL + lighting_env;
+                col = specular_env + diffuse_env;
                 return half4(col, 1);
             }
             ENDHLSL
