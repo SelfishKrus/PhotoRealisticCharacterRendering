@@ -19,13 +19,13 @@
         float3 bitangentWS_geom;
     };
 
-    ShadingSurface GetShadingSurface(Texture2D baseColorMap, float3 tint, Texture2D rmomMap, float3 rmoScale, Texture2D normalMap, float normalScale, float3 normalWS_geom, float4 tangentWS_geom, SamplerState ss, float2 uv)
+    ShadingSurface GetShadingSurface(Texture2D baseColorMap, float3 tint, float alphaScale, Texture2D rmomMap, float3 rmoScale, Texture2D normalMap, float normalScale, float3 normalWS_geom, float4 tangentWS_geom, SamplerState ss, float2 uv)
     {
         ShadingSurface surf;
 
         float4 baseColor = SAMPLE_TEXTURE2D(baseColorMap, ss, uv);
         surf.baseColor = baseColor.rgb * tint;
-        surf.alpha = baseColor.a;
+        surf.alpha = baseColor.a * alphaScale;
 
         surf.roughness = lerp(0.01, 0.99, SAMPLE_TEXTURE2D(rmomMap, ss, uv).r * rmoScale.r);
         surf.metallic = lerp(0.01, 0.99, SAMPLE_TEXTURE2D(rmomMap, ss, uv).g * rmoScale.g);
