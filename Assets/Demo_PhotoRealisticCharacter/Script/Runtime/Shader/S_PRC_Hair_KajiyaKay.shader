@@ -6,6 +6,7 @@ Shader "PRC/Hair_KajiyaKay"
         [Space(10)]
         _T_BaseColor ("Texture", 2D) = "white" {}
         _BaseColorTint ("Tint", Color) = (1,1,1,1)
+        _Transparency ("Transparency", Range(0, 1)) = 1
         _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
         _T_Normal ("Normal Map", 2D) = "bump" {}
         _NormalScale_K ("Normal Scale", Range(0,5)) = 1
@@ -161,7 +162,7 @@ Shader "PRC/Hair_KajiyaKay"
         Tags
         {
             "RenderPipeline"="HDRenderPipeline"
-            "Queue"="Geometry"
+            "Queue" = "Transparent"
         }
         LOD 100
 
@@ -244,13 +245,60 @@ Shader "PRC/Hair_KajiyaKay"
         }
 
         Pass
-        {
+        {   
+            Name "Hair Prime Z"
             Tags
             {
                 "LightMode" = "ForwardOnly"
+                "Queue" = "Transparent"
             }
 
+            ZTest Less
             ZWrite On
+            Cull Off
+            ColorMask 0
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma multi_compile_fragment PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
+	        #pragma multi_compile_fragment DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
+            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
+            #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
+            #pragma multi_compile_fragment K_ALPHA_TEST _
+
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+
+            #define DIRECTIONAL_SHADOW_HIGH
+            #define K_ALPHA_TEST
+
+            #include "K_Utilities.hlsl"
+            #include "K_ShadingInputs.hlsl"
+            #include "K_ShadingSurface.hlsl"
+            #include "K_Lighting.hlsl"
+            #include "PRC_Hair.hlsl"
+
+            #include "KajiyaKayHairShadingPass.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {   
+            Name "Hair Opaque"
+            Tags
+            {
+                "Queue" = "Transparent+5"
+            }
+
+            ZTest Equal
+            ZWrite Off
             Cull Off
 
             HLSLPROGRAM
@@ -261,6 +309,94 @@ Shader "PRC/Hair_KajiyaKay"
 	        #pragma multi_compile_fragment DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
             #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
             #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
+            #pragma multi_compile_fragment K_ALPHA_TEST _
+
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+
+            #define DIRECTIONAL_SHADOW_HIGH
+            //#define K_ALPHA_TEST
+
+            #include "K_Utilities.hlsl"
+            #include "K_ShadingInputs.hlsl"
+            #include "K_ShadingSurface.hlsl"
+            #include "K_Lighting.hlsl"
+            #include "PRC_Hair.hlsl"
+
+            #include "KajiyaKayHairShadingPass.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {   
+            Name "Hair Transparent Back"
+            Tags
+            {
+                "Queue" = "Transparent+10"
+            }
+
+            ZTest Less
+            ZWrite Off
+            Cull Front
+            Blend SrcAlpha OneMinusSrcAlpha
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma multi_compile_fragment PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
+	        #pragma multi_compile_fragment DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
+            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
+            #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
+            #pragma multi_compile_fragment K_ALPHA_TEST _
+
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+
+            #define DIRECTIONAL_SHADOW_HIGH
+
+            #include "K_Utilities.hlsl"
+            #include "K_ShadingInputs.hlsl"
+            #include "K_ShadingSurface.hlsl"
+            #include "K_Lighting.hlsl"
+            #include "PRC_Hair.hlsl"
+
+            #include "KajiyaKayHairShadingPass.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {   
+            Name "Hair Transparent Front"
+            Tags
+            {
+                "Queue" = "Transparent+15"
+            }
+
+            ZTest Less
+            ZWrite On
+            Cull Back
+            Blend SrcAlpha OneMinusSrcAlpha
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma multi_compile_fragment PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
+	        #pragma multi_compile_fragment DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
+            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
+            #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
+            #pragma multi_compile_fragment K_ALPHA_TEST _
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"

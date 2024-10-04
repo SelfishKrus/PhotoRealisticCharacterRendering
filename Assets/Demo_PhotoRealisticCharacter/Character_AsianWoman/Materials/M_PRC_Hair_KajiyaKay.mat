@@ -1,0 +1,119 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_PRC_Hair_KajiyaKay
+  m_Shader: {fileID: 4800000, guid: cd1251c1ced49c44ea6f426e63b9ca4f, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - RECEIVE_DIRECTIONAL_SHADOW
+  m_InvalidKeywords:
+  - DETAIL_NORMAL_K
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_BaseColor:
+        m_Texture: {fileID: 2800000, guid: a28f2c8cff2884a4b828618a531ac779, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Curvature:
+        m_Texture: {fileID: 2800000, guid: 5f09667cf0398c149a9aca7ed31d89f2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_DetailNormal:
+        m_Texture: {fileID: 2800000, guid: 2868740a63e609045b6881aeaf3fe643, type: 3}
+        m_Scale: {x: 20, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_LUT_Diffuse:
+        m_Texture: {fileID: 8600000, guid: e242bacc2a42d7b459c5b599a21fdc28, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_LUT_Shadow:
+        m_Texture: {fileID: 2800000, guid: 179b3855b2ecfd14a80240a335548f9d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_LUT_Trans:
+        m_Texture: {fileID: 8600000, guid: 0c07199a584c2d84dafb82a2504c6fde, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Normal:
+        m_Texture: {fileID: 2800000, guid: 42ffde49d396cf24ca5785210492320d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Rmo:
+        m_Texture: {fileID: 2800000, guid: 26378eeca27e0e546b2b279a8ad47c48, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Shift:
+        m_Texture: {fileID: 2800000, guid: 922c49c62646e4e4abd85953d263601d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Thickness:
+        m_Texture: {fileID: 2800000, guid: 77bcb3a292251474bb1d4f69f20e90a4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_TransmittanceColor:
+        m_Texture: {fileID: 2800000, guid: 1f9c427b9f5544e48a0bf353256f5883, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AOScale: 1
+    - _Compare: 8
+    - _DetailNormalScale: 1
+    - _DetailNormalScale_K: 0.5
+    - _DetailNormal_K: 1
+    - _DirectionalSpecularIntensity: 13
+    - _DirectionalSpecularIrradianceBias: 0.725
+    - _Gloss: 0.645
+    - _Glossiness: 0.625
+    - _LowNormalLod: 6
+    - _MetallicScale: 1
+    - _MinThicknessNormalized: 0
+    - _NormalScale: 0.65
+    - _NormalScale_K: 0
+    - _Pass: 2
+    - _PrimarayShift: -0.554
+    - _ReceiveDirectionalShadow: 1
+    - _RoughnessScale: 1
+    - _SecondaryShift: 0.11
+    - _SpecularRGloss: 148.9
+    - _SpecularRShift: -0.56
+    - _SpecularReflectance: 0.028
+    - _SpecularTRTGloss: 95.3
+    - _SpecularTRTShift: -0.3
+    - _StencilMask: 192
+    - _StencilWriteMask: 192
+    - _Transparency: 1
+    - _Wrap: 0.54
+    - _WrapLighting: 1
+    - _WrapR: 0
+    - _WrapRGB: 0
+    m_Colors:
+    - _BaseColorTint: {r: 0.57861626, g: 0.18741335, b: 0.18741335, a: 1}
+    - _CurvatureScaleBias: {r: 1.5, g: 0.15, b: 0, a: 0}
+    - _Test: {r: 0.7, g: 16.6, b: 0, a: 0}
+    - _TransScaleBias: {r: 1, g: 0, b: 0, a: 0}
+    - _TransScaleBiasEnv: {r: 1, g: 0.08, b: 0, a: 0}
+    - _TransmittanceTint: {r: 0.37106913, g: 0, b: 0.0041694036, a: 1}
+    - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
+    - _WrapLighting: {r: 0.27044016, g: 0.27044016, b: 0.27044016, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

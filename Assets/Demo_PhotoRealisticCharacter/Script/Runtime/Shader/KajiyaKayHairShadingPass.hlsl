@@ -38,6 +38,8 @@
     float _SpecularRGloss;
     float _SpecularTRTGloss;
 
+    float _Transparency;
+
     Varyings vert (Attributes IN)
     {
         Varyings OUT;
@@ -52,9 +54,11 @@
     half4 frag (Varyings IN) : SV_Target
     {   
         // Surface
-        ShadingSurface surf = GetShadingSurface(_T_BaseColor, _BaseColorTint, _T_Rmo, float3(_RoughnessScale, _MetallicScale, _AOScale), _T_Normal, _NormalScale_K, IN.normalWS, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
-
-        clip(surf.alpha - 0.33);
+        ShadingSurface surf = GetShadingSurface(_T_BaseColor, _BaseColorTint, _Transparency, _T_Rmo, float3(_RoughnessScale, _MetallicScale, _AOScale), _T_Normal, _NormalScale_K, IN.normalWS, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
+        
+        #if defined(K_ALPHA_TEST)
+            clip(surf.alpha - 0.33);
+        #endif
 
         // Shading Variables 
         DirectionalLightData lightData = _DirectionalLightDatas[0];
