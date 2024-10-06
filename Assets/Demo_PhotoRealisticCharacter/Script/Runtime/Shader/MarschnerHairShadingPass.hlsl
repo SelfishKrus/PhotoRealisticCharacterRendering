@@ -1,6 +1,9 @@
 ﻿#ifndef MARSCHNER_HAIR_SHADING_PASS_INCLUDED
 #define MARSCHNER_HAIR_SHADING_PASS_INCLUDED
 
+    #include "FastMathThirdParty.hlsl"
+    #include "PRC_Hair.hlsl"
+
     struct Attributes
     {
         float4 posOS : POSITION;
@@ -33,11 +36,6 @@
     float _NormalScale_K;
     float4 _Test;
 
-    float _SpecularRShift;
-    float _SpecularTRTShift;
-    float _SpecularRGloss;
-    float _SpecularTRTGloss;
-
     float _Transparency;
 
     Varyings vert (Attributes IN)
@@ -65,15 +63,89 @@
 
         ShadingInputs si = GetShadingInputs(surf.normalWS_high, IN.posWS, lightData, _WrapLighting);
 
+
         // Shading // 
-        // diffuse 
-        float3 diffuse = si.NoL_wrap * surf.baseColor;
 
-        // specular
-        float shift = SAMPLE_TEXTURE2D(_T_Shift, SamplerState_Linear_Repeat, IN.uv).r - 0.5;
-        float3 specular = KajiyaKaySpecular(shift+_SpecularRShift, shift+_SpecularTRTShift, surf.bitangentWS_geom, surf.normalWS_high, si.H, lightData.color, _BaseColorTint, _SpecularRGloss, _SpecularTRTGloss);
+        const float VoL = dot(si.V,si.L);                                                      
+        const float SinThetaL = clamp(dot(surf.bitangentWS_geom,si.L), -1.f, 1.f);
+	    const float SinThetaV = clamp(dot(surf.bitangentWS_geom,si.V), -1.f, 1.f);
 
-        float3 col = diffuse + specular;
+        float CosThetaD = cos( 0.5 * abs( asinFast( SinThetaV ) - asinFast( SinThetaL ) ) );
+
+        const float3 Lp = si.L - SinThetaL * surf.bitangentWS_geom;
+	    const float3 Vp = si.V - SinThetaV * surf.bitangentWS_geom;
+	    const float CosPhi = dot(Lp,Vp) * rsqrt( dot(Lp,Lp) * dot(Vp,Vp) + 1e-4 );
+	    const float CosHalfPhi = sqrt( saturate( 0.5 + 0.5 * CosPhi ) );
+
+        // This is used for faking area light sources by increasing the roughness of the surface. Disabled = 0.
+        const float Area = 0;
+
+        // IOR
+        float n = 1.55;
+        float n_prime = 1.19 / CosThetaD + 0.36 * CosThetaD;
+
+        float Shift = 0.035;
+
+        // based on cuticle scales’ tilt
+	    float Alpha[] =
+	    {
+		    -Shift * 2,
+		    Shift,
+		    Shift * 4,
+	    };	
+
+        // based on roughness
+	    float B[] =
+	    {
+		    Area + Pow2(surf.roughness),
+		    Area + Pow2(surf.roughness) / 2,
+		    Area + Pow2(surf.roughness) * 2,
+	    };
+
+        // SINGLE-SCATTERING // 
+        float3 S = 0;
+
+        // R // 
+        #if defined(HAIR_SINGLE_SCATTERING_R)
+		    const float sa = sin(Alpha[0]);
+		    const float ca = cos(Alpha[0]);
+            float ShiftR = 2 * sa * (ca * CosHalfPhi * sqrt(1 - SinThetaV * SinThetaV) + sa * SinThetaV);
+            float M_R = Hair_g(B[0], SinThetaL + SinThetaV - ShiftR);
+            float N_R = 0.25 * CosHalfPhi;
+            float F_R = Hair_F(sqrt(saturate(0.5 + 0.5 * VoL)));
+            S += M_R * N_R * F_R;
+        #endif
+
+        
+        // TT // 
+        #if defined(HAIR_SINGLE_SCATTERING_TT)
+            float M_TT = Hair_g( B[1], SinThetaL + SinThetaV - Alpha[1] );
+            float a = 1 / n_prime;
+            float h = CosHalfPhi * ( 1 + a * ( 0.6 - 0.8 * CosPhi ) );
+            //float h = 0; // Frosbite Engine
+
+            float f_TT = Hair_F( CosThetaD * sqrt( saturate( 1 - h*h ) ) );
+            float F_TT = Pow2(1 - f_TT);
+            float3 T_TT = pow(abs(surf.baseColor), 0.5 * sqrt(1 - Pow2(h * a)) / CosThetaD);
+
+            float D_TT = exp( -3.65 * CosPhi - 3.98 );
+            float3 N_TT = D_TT * F_TT * T_TT;
+            S += M_TT * N_TT;
+        #endif
+
+        // TRT // 
+        #if defined(HAIR_SINGLE_SCATTERING_TRT)
+            float M_TRT = Hair_g( B[2], SinThetaL + SinThetaV - Alpha[2] );
+		    float f_TRT = Hair_F( CosThetaD * 0.5 );
+		    float F_TRT = Pow2(1 - f_TRT) * f_TRT;
+
+            float3 T_TRT = pow(abs(surf.baseColor), 0.8 / CosThetaD );
+            float N_TRT = exp( 17 * CosPhi - 16.78 );
+
+            S += M_TRT * N_TRT * F_TRT * T_TRT;
+        #endif
+
+        float3 col = S;
         return half4(col, surf.alpha);
     }
 

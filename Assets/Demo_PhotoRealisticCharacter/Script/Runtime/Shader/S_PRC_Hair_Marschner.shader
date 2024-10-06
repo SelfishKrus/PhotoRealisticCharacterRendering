@@ -18,16 +18,15 @@ Shader "PRC/Hair_Marschner"
         _AOScale ("AO Scale", Range(0, 1.5)) = 1
         [Space(20)]
 
-        _T_Shift ("Shift Map", 2D) = "white" {}
-        _SpecularRShift ("Specular R Shift", Range(-5, 5)) = 0
-        _SpecularTRTShift ("Specular TRT Shift", Range(-5, 5)) = 0
-        [Space(20)]
+        [Toggle(HAIR_SINGLE_SCATTERING_R)] _HairSingleScatteringR ("Hair Single Scattering R", Float) = 1
+        [Toggle(HAIR_SINGLE_SCATTERING_TT)] _HairSingleScatteringTT ("Hair Single Scattering TT", Float) = 1
+        [Toggle(HAIR_SINGLE_SCATTERING_TRT)] _HairSingleScatteringTRT ("Hair Single Scattering TRT", Float) = 1
 
-        _SpecularRGloss ("Specular R Gloss", Range(0, 200)) = 50
-        _SpecularTRTGloss ("Specular TRT Gloss", Range(0, 200)) = 10
         [Space(20)]
-
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
+
+
+
         [Space(20)]
 
         _Test ("Test", Vector) = (1,1,1,1)
@@ -268,6 +267,10 @@ Shader "PRC/Hair_Marschner"
             #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
             #pragma multi_compile_fragment K_ALPHA_TEST _
 
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_R _
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TT _
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TRT _
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
@@ -310,6 +313,10 @@ Shader "PRC/Hair_Marschner"
             #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
             #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
             #pragma multi_compile_fragment K_ALPHA_TEST _
+
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_R _
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TT _
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TRT _
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -355,6 +362,10 @@ Shader "PRC/Hair_Marschner"
             #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
             #pragma multi_compile_fragment K_ALPHA_TEST _
 
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_R _
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TT _
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TRT _
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
@@ -398,6 +409,10 @@ Shader "PRC/Hair_Marschner"
             #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
             #pragma multi_compile_fragment K_ALPHA_TEST _
 
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_R _
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TT _
+            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TRT _
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
@@ -411,7 +426,6 @@ Shader "PRC/Hair_Marschner"
             #include "K_ShadingInputs.hlsl"
             #include "K_ShadingSurface.hlsl"
             #include "K_Lighting.hlsl"
-            #include "PRC_Hair.hlsl"
 
             #include "MarschnerHairShadingPass.hlsl"
 
