@@ -2,6 +2,7 @@
 #define PRC_HAIR_INCLUDED
 
     #include "FastMathThirdParty.hlsl"
+    #include "K_Utilities.hlsl"
     
     // ----------------------------------------------------
     // Kajiya-Kay Hair Model
@@ -38,8 +39,6 @@
     // Marschner Hair Shading Model 
     // ----------------------------------------------------
 
-
-
     // Fit longitudinal scattering with gaussian function
     // M term
     float Hair_g(float B, float Theta)
@@ -52,6 +51,18 @@
 	    const float n = 1.55;
 	    const float F0 = Pow2((1 - n) / (1 + n));
 	    return F0 + (1 - F0) * Pow5(1 - CosTheta);
+    }
+
+    float3 MultiScattering_Empirical(float3 baseColor, float3 L, float3 V, float3 N, float shadow)
+    {
+        float3 fakeNormal = normalize(V - N * dot(V, N));
+        float wrap = 1; 
+        float NoL = saturate((dot(fakeNormal, L) + wrap) / (1+wrap));
+        float luma = Luminance_K(baseColor);
+        float3 baseOverLuma = abs(baseColor / max(luma, 0.001));
+        float3 scatterTint = shadow < 1 ? pow(baseOverLuma, 1 - shadow) : 1;
+        
+        return sqrt(abs(baseColor)) * NoL * scatterTint;
     }
 
 #endif 

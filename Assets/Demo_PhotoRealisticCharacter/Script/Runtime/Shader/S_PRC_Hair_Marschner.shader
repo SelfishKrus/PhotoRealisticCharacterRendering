@@ -5,6 +5,7 @@ Shader "PRC/Hair_Marschner"
         [Header(Base Map)]
         [Space(10)]
         _T_BaseColor ("Texture", 2D) = "white" {}
+
         _BaseColorTint ("Tint", Color) = (1,1,1,1)
         _Transparency ("Transparency", Range(0, 1)) = 1
         _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
@@ -21,6 +22,7 @@ Shader "PRC/Hair_Marschner"
         [Toggle(HAIR_SINGLE_SCATTERING_R)] _HairSingleScatteringR ("Hair Single Scattering R", Float) = 1
         [Toggle(HAIR_SINGLE_SCATTERING_TT)] _HairSingleScatteringTT ("Hair Single Scattering TT", Float) = 1
         [Toggle(HAIR_SINGLE_SCATTERING_TRT)] _HairSingleScatteringTRT ("Hair Single Scattering TRT", Float) = 1
+        [Toggle(HAIR_MULTIPLE_SCATTERING)] _HairMultipleScattering ("Hair Multiple Scattering", Float) = 1
 
         [Space(20)]
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
@@ -28,7 +30,7 @@ Shader "PRC/Hair_Marschner"
 
 
         [Space(20)]
-
+        _CutOffThreshold ("Cut Off Threshold", Range(0, 1)) = 0.5
         _Test ("Test", Vector) = (1,1,1,1)
     }
 
@@ -190,12 +192,18 @@ Shader "PRC/Hair_Marschner"
 
             #pragma shader_feature_local _ALPHATEST_ON
 
+            #define _ALPHATEST_ON
+            #define _UseShadowThreshold 1
+
+
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            #define GENERIC_ALPHA_TEST(alphaValue, alphaCutoff) GENERIC_ALPHA_TEST(0.5, alphaCutoff)
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -243,54 +251,55 @@ Shader "PRC/Hair_Marschner"
             ENDHLSL
         }
 
-        Pass
-        {   
-            Name "Hair Prime Z"
-            Tags
-            {
-                "LightMode" = "ForwardOnly"
-                "Queue" = "Transparent"
-            }
+        //Pass
+        //{   
+        //    Name "Hair Prime Z"
+        //    Tags
+        //    {
+        //        "LightMode" = "ForwardOnly"
+        //        "Queue" = "Transparent"
+        //    }
 
-            ZTest Less
-            ZWrite On
-            Cull Off
-            ColorMask 0
+        //    ZTest Less
+        //    ZWrite On
+        //    Cull Off
+        //    ColorMask 0
 
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+        //    HLSLPROGRAM
+        //    #pragma vertex vert
+        //    #pragma fragment frag
 
-            #pragma multi_compile_fragment PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
-	        #pragma multi_compile_fragment DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
-            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
-            #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
-            #pragma multi_compile_fragment K_ALPHA_TEST _
+        //    #pragma multi_compile_fragment PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
+	       // #pragma multi_compile_fragment DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
+        //    #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
+        //    #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
+        //    #pragma multi_compile_fragment K_ALPHA_TEST _
 
-            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_R _
-            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TT _
-            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TRT _
+        //    #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_R _
+        //    #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TT _
+        //    #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TRT _
+        //    #pragma multi_compile_fragment HAIR_MULTIPLE_SCATTERING _
 
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+        //    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+        //    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        //    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+        //    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+        //    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+        //    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
-            #define DIRECTIONAL_SHADOW_HIGH
-            #define K_ALPHA_TEST
+        //    #define K_ALPHA_TEST
+        //    #define SHADER_PASS HAIR_PRIME_Z
 
-            #include "K_Utilities.hlsl"
-            #include "K_ShadingInputs.hlsl"
-            #include "K_ShadingSurface.hlsl"
-            #include "K_Lighting.hlsl"
-            #include "PRC_Hair.hlsl"
+        //    #include "K_Utilities.hlsl"
+        //    #include "K_ShadingInputs.hlsl"
+        //    #include "K_ShadingSurface.hlsl"
+        //    #include "K_Lighting.hlsl"
+        //    #include "PRC_Hair.hlsl"
 
-            #include "MarschnerHairShadingPass.hlsl"
+        //    #include "MarschnerHairShadingPass.hlsl"
 
-            ENDHLSL
-        }
+        //    ENDHLSL
+        //}
 
         Pass
         {   
@@ -300,104 +309,10 @@ Shader "PRC/Hair_Marschner"
                 "Queue" = "Transparent+5"
             }
 
-            ZTest Equal
-            ZWrite Off
-            Cull Off
-
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-
-            #pragma multi_compile_fragment PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
-	        #pragma multi_compile_fragment DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
-            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
-            #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
-            #pragma multi_compile_fragment K_ALPHA_TEST _
-
-            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_R _
-            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TT _
-            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TRT _
-
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
-
-            #define DIRECTIONAL_SHADOW_HIGH
-            //#define K_ALPHA_TEST
-
-            #include "K_Utilities.hlsl"
-            #include "K_ShadingInputs.hlsl"
-            #include "K_ShadingSurface.hlsl"
-            #include "K_Lighting.hlsl"
-            #include "PRC_Hair.hlsl"
-
-            #include "MarschnerHairShadingPass.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {   
-            Name "Hair Transparent Back"
-            Tags
-            {
-                "Queue" = "Transparent+10"
-            }
-
-            ZTest Less
-            ZWrite Off
-            Cull Front
-            Blend SrcAlpha OneMinusSrcAlpha
-
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-
-            #pragma multi_compile_fragment PUNCTUAL_SHADOW_LOW PUNCTUAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_HIGH
-	        #pragma multi_compile_fragment DIRECTIONAL_SHADOW_LOW DIRECTIONAL_SHADOW_MEDIUM DIRECTIONAL_SHADOW_HIGH
-            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
-            #pragma multi_compile_fragment RECEIVE_DIRECTIONAL_SHADOW _
-            #pragma multi_compile_fragment K_ALPHA_TEST _
-
-            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_R _
-            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TT _
-            #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TRT _
-
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
-
-            #define DIRECTIONAL_SHADOW_HIGH
-
-            #include "K_Utilities.hlsl"
-            #include "K_ShadingInputs.hlsl"
-            #include "K_ShadingSurface.hlsl"
-            #include "K_Lighting.hlsl"
-            #include "PRC_Hair.hlsl"
-
-            #include "MarschnerHairShadingPass.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {   
-            Name "Hair Transparent Front"
-            Tags
-            {
-                "Queue" = "Transparent+15"
-            }
-
-            ZTest Less
+            ZTest LEqual
             ZWrite On
-            Cull Back
-            Blend SrcAlpha OneMinusSrcAlpha
+            Cull Off
+            //Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -412,6 +327,7 @@ Shader "PRC/Hair_Marschner"
             #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_R _
             #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TT _
             #pragma multi_compile_fragment HAIR_SINGLE_SCATTERING_TRT _
+            #pragma multi_compile_fragment HAIR_MULTIPLE_SCATTERING _
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -420,12 +336,14 @@ Shader "PRC/Hair_Marschner"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
-            #define DIRECTIONAL_SHADOW_HIGH
+            #define K_ALPHA_TEST
+            #define SHADER_PASS HAIR_OPAQUE
 
             #include "K_Utilities.hlsl"
             #include "K_ShadingInputs.hlsl"
             #include "K_ShadingSurface.hlsl"
             #include "K_Lighting.hlsl"
+            #include "PRC_Hair.hlsl"
 
             #include "MarschnerHairShadingPass.hlsl"
 

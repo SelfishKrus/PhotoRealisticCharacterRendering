@@ -35,6 +35,7 @@
     float _AOScale;
     float _NormalScale_K;
     float4 _Test;
+    float _CutOffThreshold;
 
     float _Transparency;
 
@@ -55,7 +56,7 @@
         ShadingSurface surf = GetShadingSurface(_T_BaseColor, _BaseColorTint, _Transparency, _T_Rmo, float3(_RoughnessScale, _MetallicScale, _AOScale), _T_Normal, _NormalScale_K, IN.normalWS, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
         
         #if defined(K_ALPHA_TEST)
-            clip(surf.alpha - 0.33);
+            clip(surf.alpha - _CutOffThreshold);
         #endif
 
         // Shading Variables 
@@ -63,6 +64,16 @@
 
         ShadingInputs si = GetShadingInputs(surf.normalWS_high, IN.posWS, lightData, _WrapLighting);
 
+        // Get directional light shadows 
+        float2 posSS = IN.pos.xy / _ScreenParams.xy;
+        HDShadowContext shadowContext = InitShadowContext();
+        #if defined(RECEIVE_DIRECTIONAL_SHADOW)
+            float shadow = GetDirectionalShadowAttenuation(shadowContext,
+					            posSS, IN.posWS, surf.normalWS_geom,
+					            lightData.shadowIndex, si.L);
+        #else 
+            float shadow = 1;
+        #endif
 
         // Shading // 
 
@@ -145,7 +156,18 @@
             S += M_TRT * N_TRT * F_TRT * T_TRT;
         #endif
 
-        float3 col = S;
+        // Multi-Scattering //
+        #if defined(HAIR_MULTIPLE_SCATTERING)
+            float3 MS = MultiScattering_Empirical(surf.baseColor, si.L, si.V, surf.bitangentWS_geom, shadow);
+        #else 
+            float3 MS = 0;
+        #endif
+
+        //float4 ditherMask = Dither(normalize(IN.pos), posSS * _Test.x);
+
+        //return float4(ditherMask.rgb, 1);
+
+        float3 col = S + MS;
         return half4(col, surf.alpha);
     }
 
