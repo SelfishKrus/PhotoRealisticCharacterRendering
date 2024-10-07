@@ -53,16 +53,19 @@
 	    return F0 + (1 - F0) * Pow5(1 - CosTheta);
     }
 
-    float3 MultiScattering_Empirical(float3 baseColor, float3 L, float3 V, float3 N, float shadow)
-    {
+    float3 MultiScattering_Empirical(float3 baseColor, float metallic, float3 L, float3 V, float3 N, float shadow)
+    {   
+        float KajiyaDiffuse = 1 - abs(dot(N, L));
+
         float3 fakeNormal = normalize(V - N * dot(V, N));
         float wrap = 1; 
         float NoL = saturate((dot(fakeNormal, L) + wrap) / (1+wrap));
+        float DiffuseScatter = lerp(NoL, KajiyaDiffuse, 0.33) * metallic;
         float luma = Luminance_K(baseColor);
         float3 baseOverLuma = abs(baseColor / max(luma, 0.001));
         float3 scatterTint = shadow < 1 ? pow(baseOverLuma, 1 - shadow) : 1;
         
-        return sqrt(abs(baseColor)) * NoL * scatterTint;
+        return sqrt(abs(baseColor)) * DiffuseScatter * scatterTint;
     }
 
 #endif 

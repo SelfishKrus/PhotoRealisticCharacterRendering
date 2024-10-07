@@ -85,7 +85,7 @@ Material:
     - _Gloss: 0.645
     - _Glossiness: 0.625
     - _LowNormalLod: 6
-    - _MetallicScale: 1
+    - _MetallicScale: 1.032
     - _MinThicknessNormalized: 0
     - _NormalScale: 0.65
     - _NormalScale_K: 0
@@ -94,8 +94,8 @@ Material:
     - _ReceiveDirectionalShadow: 1
     - _RoughnessScale: 1
     - _SecondaryShift: 0.11
-    - _SpecularRGloss: 148.9
-    - _SpecularRShift: -0.56
+    - _SpecularRGloss: 142.8
+    - _SpecularRShift: -0.43
     - _SpecularReflectance: 0.028
     - _SpecularTRTGloss: 95.3
     - _SpecularTRTShift: -0.3
@@ -107,9 +107,9 @@ Material:
     - _WrapR: 0
     - _WrapRGB: 0
     m_Colors:
-    - _BaseColorTint: {r: 0.57861626, g: 0.18741335, b: 0.18741335, a: 1}
+    - _BaseColorTint: {r: 0.16352195, g: 0.02828207, b: 0.02828207, a: 1}
     - _CurvatureScaleBias: {r: 1.5, g: 0.15, b: 0, a: 0}
-    - _Test: {r: 0.7, g: 16.6, b: 0, a: 0}
+    - _Test: {r: 0.25, g: 16.6, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: 0, b: 0, a: 0}
     - _TransScaleBiasEnv: {r: 1, g: 0.08, b: 0, a: 0}
     - _TransmittanceTint: {r: 0.37106913, g: 0, b: 0.0041694036, a: 1}

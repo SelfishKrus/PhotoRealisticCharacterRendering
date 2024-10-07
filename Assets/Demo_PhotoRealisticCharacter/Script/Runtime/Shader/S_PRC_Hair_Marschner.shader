@@ -4,10 +4,10 @@ Shader "PRC/Hair_Marschner"
     {
         [Header(Base Map)]
         [Space(10)]
-        _T_BaseColor ("Texture", 2D) = "white" {}
+        [MainTexture] _BaseColorMap ("Texture", 2D) = "white" {}
 
-        _BaseColorTint ("Tint", Color) = (1,1,1,1)
-        _Transparency ("Transparency", Range(0, 1)) = 1
+        [MainColor] _BaseColor ("Tint", Color) = (1,1,1,1)
+        _Transparency ("Transparency", Range(0, 10)) = 1
         _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
         _T_Normal ("Normal Map", 2D) = "bump" {}
         _NormalScale_K ("Normal Scale", Range(0,5)) = 1
@@ -29,9 +29,19 @@ Shader "PRC/Hair_Marschner"
 
 
 
-        [Space(20)]
         _CutOffThreshold ("Cut Off Threshold", Range(0, 1)) = 0.5
+        // Alpha Clip Shadow
+        [HideInInspector] _AlphaRemapMin("AlphaRemapMin", Float) = 0.0
+        [HideInInspector] _AlphaRemapMax("AlphaRemapMax", Float) = 1.0
+        [HideInInspector]  _UseShadowThreshold("_UseShadowThreshold", Float) = 1.0
+        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
+        _AlphaCutoffShadow("_AlphaCutoffShadow", Range(0.0, 1.0)) = 0.5
+
+        [Space(20)]
         _Test ("Test", Vector) = (1,1,1,1)
+
+
+
     }
 
       HLSLINCLUDE

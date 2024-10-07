@@ -23,12 +23,10 @@
 
     float4 _T_DetailNormal_ST;
 
-    TEXTURE2D(_T_BaseColor);
     TEXTURE2D(_T_Normal);
     TEXTURE2D(_T_Rmo);
     TEXTURE2D(_T_Shift);
 
-    float3 _BaseColorTint;
     float _WrapLighting;
     float _RoughnessScale;
     float _MetallicScale;
@@ -53,8 +51,12 @@
     half4 frag (Varyings IN) : SV_Target
     {   
         // Surface
-        ShadingSurface surf = GetShadingSurface(_T_BaseColor, _BaseColorTint, _Transparency, _T_Rmo, float3(_RoughnessScale, _MetallicScale, _AOScale), _T_Normal, _NormalScale_K, IN.normalWS, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
+        ShadingSurface surf = GetShadingSurface(_BaseColorMap, _BaseColor, _Transparency, _T_Rmo, float3(_RoughnessScale, _MetallicScale, _AOScale), _T_Normal, _NormalScale_K, IN.normalWS, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
         
+        float2 posSS = IN.pos.xy / _ScreenParams.xy;
+        float4 ditherMask = Dither(normalize(IN.pos), posSS * _Test.x);
+        //return float4(ditherMask.rrr, 1);
+
         #if defined(K_ALPHA_TEST)
             clip(surf.alpha - _CutOffThreshold);
         #endif
@@ -65,7 +67,6 @@
         ShadingInputs si = GetShadingInputs(surf.normalWS_high, IN.posWS, lightData, _WrapLighting);
 
         // Get directional light shadows 
-        float2 posSS = IN.pos.xy / _ScreenParams.xy;
         HDShadowContext shadowContext = InitShadowContext();
         #if defined(RECEIVE_DIRECTIONAL_SHADOW)
             float shadow = GetDirectionalShadowAttenuation(shadowContext,
@@ -76,7 +77,6 @@
         #endif
 
         // Shading // 
-
         const float VoL = dot(si.V,si.L);                                                      
         const float SinThetaL = clamp(dot(surf.bitangentWS_geom,si.L), -1.f, 1.f);
 	    const float SinThetaV = clamp(dot(surf.bitangentWS_geom,si.V), -1.f, 1.f);
@@ -158,14 +158,10 @@
 
         // Multi-Scattering //
         #if defined(HAIR_MULTIPLE_SCATTERING)
-            float3 MS = MultiScattering_Empirical(surf.baseColor, si.L, si.V, surf.bitangentWS_geom, shadow);
+            float3 MS = MultiScattering_Empirical(surf.baseColor, surf.metallic, si.L, si.V, surf.bitangentWS_geom, shadow);
         #else 
             float3 MS = 0;
         #endif
-
-        //float4 ditherMask = Dither(normalize(IN.pos), posSS * _Test.x);
-
-        //return float4(ditherMask.rgb, 1);
 
         float3 col = S + MS;
         return half4(col, surf.alpha);
