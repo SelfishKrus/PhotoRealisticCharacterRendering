@@ -56,6 +56,17 @@
 		float d = ( NoH * a2 - NoH ) * NoH + 1;	// 2 mad
 		return a2 / ( PI*d*d );					// 4 mul, 1 rcp
 	}
+	
+	// GPU Gems3
+	// origin - left bottom
+	// uv.x - NoH
+	// uv.y - roughness 
+	float NDF_Beckmann_LUT(float NoH, float roughness, Texture2D lutBeckmann, SamplerState ss)
+	{
+		float2 uv = float2(NoH, roughness);
+		return pow(2.0 * lutBeckmann.Sample(ss, uv), 10);
+	}
+
 
 	// [Schlick 1994, "An Inexpensive BRDF Model for Physically-Based Rendering"]
 	float3 Fresnel_Schlick( float3 SpecularColor, float VoH)
