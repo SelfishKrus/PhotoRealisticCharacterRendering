@@ -16,6 +16,9 @@
 	TEXTURE2D(PreIntegratedGF);
 	SAMPLER(sampler_PreIntegratedGF);
 
+	TEXTURE2D(T_LUT_PHBeckmann);
+	SAMPLER(sampler_T_LUT_PHBeckmann);
+
 	// Physically based shading model
 	// parameterized with the below options
 	// [ Karis 2013, "Real Shading in Unreal Engine 4" slide 11 ]
@@ -61,10 +64,10 @@
 	// origin - left bottom
 	// uv.x - NoH
 	// uv.y - roughness 
-	float NDF_Beckmann_LUT(float NoH, float roughness, Texture2D lutBeckmann, SamplerState ss)
+	float NDF_Beckmann_LUT(float NoH, float roughness)
 	{
 		float2 uv = float2(NoH, roughness);
-		return pow(2.0 * lutBeckmann.Sample(ss, uv), 10);
+		return pow(2.0 * SAMPLE_TEXTURE2D(T_LUT_PHBeckmann, sampler_T_LUT_PHBeckmann, uv), 10);
 	}
 
 

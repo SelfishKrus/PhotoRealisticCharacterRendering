@@ -138,4 +138,28 @@ float3 EvaluateTransmittanceEnv(
     return T * transColor * E;
 }
 
+float3 EvaluateDualLobeDirectionalSpecular(float3 N, float3 L, float3 V, float roughness, float lerpFac, float3 lightColor, float shadow)
+{   
+    float3 H = normalize(V+L);
+	float NoH = saturate(dot(N, H));
+	float NoV = saturate(dot(N, V));
+	float NoL = saturate(dot(N, L));
+	float VoH = saturate(dot(V, H));
+
+	float rouhness_p = roughness * roughness;
+	float a2 = rouhness_p * rouhness_p;
+	float a2_p = a2 * a2;
+
+	float D0 = NDF_Beckmann_LUT(NoH, roughness);
+	float V0 = Vis_Schlick(a2, NoV, NoL);
+	float D1 = NDF_Beckmann_LUT(NoH, rouhness_p);
+	float V1 = Vis_Schlick(a2_p, NoV, NoL);
+	float3 F = Fresnel_Schlick(0.028, VoH);
+
+	float3 brdf = lerp(D0*V0, D1*V1, lerpFac) * F;
+	float3 irradiance = NoL * lightColor * shadow;
+
+	return brdf * irradiance;
+}
+
 #endif 

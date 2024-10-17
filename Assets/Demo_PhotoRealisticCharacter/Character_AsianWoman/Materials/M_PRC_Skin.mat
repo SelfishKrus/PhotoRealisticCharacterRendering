@@ -86,7 +86,7 @@ Material:
     - _NormalScale_K: 0.7
     - _Pass: 2
     - _ReceiveDirectionalShadow: 1
-    - _RoughnessScale: 1
+    - _RoughnessScale: 1.25
     - _SpecularReflectance: 0.028
     - _StencilMask: 192
     - _StencilWriteMask: 192
@@ -98,7 +98,7 @@ Material:
     - _Test: {r: 0.87, g: 0, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: 0, b: 0, a: 0}
     - _TransScaleBiasEnv: {r: 1, g: 0.08, b: 0, a: 0}
-    - _TransmittanceTint: {r: 0.37106913, g: 0, b: 0.0041694036, a: 1}
+    - _TransmittanceTint: {r: 1, g: 0, b: 0.010526657, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
     - _WrapLighting: {r: 0.27044016, g: 0.27044016, b: 0.27044016, a: 1}
   m_BuildTextureStacks: []

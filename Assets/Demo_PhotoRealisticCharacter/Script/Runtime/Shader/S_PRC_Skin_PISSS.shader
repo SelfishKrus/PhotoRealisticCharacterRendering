@@ -384,7 +384,7 @@ Shader "PRC/Skin_PISSS"
                 // diffuse DL
                 float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color.rgb, _WrapLighting, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, shadow);
                 // specular DL
-                float3 specular = EvaluateSpecularDirectLight(normalWS_specular, camDir, lightDir, lightData.color, roughness, _DirectionalSpecularIrradianceBias, shadow);
+                float3 specular = EvaluateDualLobeDirectionalSpecular(normalWS_specular, lightDir, camDir, roughness*0.25, 0.25, lightData.color, shadow);
                 // trans DL
                 float3 transmittance = EvaluateTransmittanceDirectLight(transmittanceColor, normalWS_low, lightDir, lightData.color, thickness_env, _TransScaleBias.xy, _T_LUT_Trans, SamplerState_Linear_Clamp);
                 
