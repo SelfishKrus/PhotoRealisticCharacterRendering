@@ -23,6 +23,17 @@
         return normalTS;
     }
 
+    
+    // Reoriented Normal Mapping Blending
+    // input normals' range - [0, 1]
+    float3 BlendNormal_RNM(float3 n1_map, float3 n2_map)
+    {
+        float3 t = n1_map.xyz*float3( 2,  2, 2) + float3(-1, -1,  0);
+        float3 u = n2_map.xyz*float3(-2, -2, 2) + float3( 1,  1, -1);
+        float3 r = t*dot(t, u) - u*t.z;
+        return normalize(r);
+    }
+
     float3x3 GetWorldToTangentMatrix(float3 normalWS, float4 tangentWS)
     {
         float3 bitangentWS = cross(normalWS, tangentWS.xyz) * tangentWS.w;
@@ -65,6 +76,21 @@
         };
         uint index = (uint(uv.x) % 4) * 4 + uint(uv.y) % 4;
         return In - DITHER_THRESHOLDS[index];
+    }
+
+    float WrapLighting(float val, float wrap)
+    {
+        return (val+wrap) / (1.0+wrap);
+    }
+
+    float3 WrapLighting(float3 val, float wrap)
+    {
+        return (val+wrap) / (1.0+wrap);
+    }
+
+    float3 WrapLighting(float3 val, float3 wrap)
+    {
+        return (val+wrap) / (1.0+wrap);
     }
 
 

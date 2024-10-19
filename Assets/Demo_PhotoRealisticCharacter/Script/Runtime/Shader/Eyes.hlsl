@@ -17,7 +17,6 @@ float3 GetEyeRefractDir(float n, float3 normal, float3 view)
     float3 refractDirWS = (w - k) * normal - n * view;
     
     return normalize(refractDirWS);
-
 }
 
 float CircleSDF(float2 uv, float2 center, float radius)
@@ -25,16 +24,15 @@ float CircleSDF(float2 uv, float2 center, float radius)
     return saturate(length(uv - center) - radius);
 }
 
-float2 ParallaxOffset_PhysicallyBased(float3 frontNormalOS, float3 normalWS, float3 viewWS, float height, float4x4 m_ObjectToWorld, float4x4 m_worldToTangent)
+float2 ParallaxOffset_PhysicallyBased(float3 frontNormalWS, float3 normalWS, float3 viewWS, float height, float3x3 m_worldToTangent)
 {
-    float3 frontNormalWS = normalize(mul(m_ObjectToWorld, float4(frontNormalOS, 1))).xyz;
     float3 refractDirWS = GetEyeRefractDir(1, normalWS, viewWS);
     // cosAlpha is approaching 0 at grazing angles, which leads to artefacts
     // need to set a minimum value
     float cosAlpha = max(dot(frontNormalWS, -refractDirWS), 0.2);
     float dist = height / cosAlpha;
     float3 offsetWS = dist * refractDirWS;
-    float2 offsetTS = mul(m_worldToTangent, float4(offsetWS, 1)).xy;
+    float2 offsetTS = mul(m_worldToTangent, offsetWS).xy;
     
     return offsetTS;
 }
@@ -50,8 +48,9 @@ float GetEyeHeight(float2 uv, float2 center)
 // mask.g - iris 
 // mask.b - limbus
 // mask.a - sclera
-float4 ComputeEyeMask(float2 uv, float2 center, float pupilScale, float pupilSmooth, float limbusSmooth)
+float4 ComputeEyeMask(float2 uv, float eyeScale, float2 center, float pupilScale, float pupilSmooth, float limbusSmooth)
 {   
+    uv = (uv - center) * eyeScale + center;
     float sdf = CircleSDF(uv, center, 0);
     float pupil = smoothstep(pupilScale, pupilScale - pupilSmooth * 0.5, sdf);
     float iris = smoothstep(0.5 + limbusSmooth * 2, pupilScale, sdf);

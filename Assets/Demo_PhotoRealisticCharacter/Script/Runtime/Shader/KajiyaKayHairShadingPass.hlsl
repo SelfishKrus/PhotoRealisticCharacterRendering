@@ -20,17 +20,8 @@
 
     float4 _T_DetailNormal_ST;
 
-    TEXTURE2D(_T_BaseColor);
-    TEXTURE2D(_T_Normal);
-    TEXTURE2D(_T_Rmo);
     TEXTURE2D(_T_Shift);
 
-    float3 _BaseColorTint;
-    float _WrapLighting;
-    float _RoughnessScale;
-    float _MetallicScale;
-    float _AOScale;
-    float _NormalScale_K;
     float4 _Test;
 
     float _SpecularRShift;
@@ -53,8 +44,10 @@
 
     half4 frag (Varyings IN) : SV_Target
     {   
+
+        float distanceFromFragToCam = distance(IN.posWS, _WorldSpaceCameraPos);
         // Surface
-        ShadingSurface surf = GetShadingSurface(_T_BaseColor, _BaseColorTint, _Transparency, _T_Rmo, float3(_RoughnessScale, _MetallicScale, _AOScale), _T_Normal, _NormalScale_K, IN.normalWS, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
+        ShadingSurface surf = GetShadingSurface(_T_BaseColor, _BaseColorTint, _S_Opacity, _T_Rmom, float3(_S_Roughness, _S_Metallic, _S_AO), _T_Normal, _S_Normal, IN.normalWS, _T_DetailNormal, _S_DetailNormal, _DetailNormalTiling, _DetailVisibleDistance, distanceFromFragToCam, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
         
         #if defined(K_ALPHA_TEST)
             clip(surf.alpha - 0.33);

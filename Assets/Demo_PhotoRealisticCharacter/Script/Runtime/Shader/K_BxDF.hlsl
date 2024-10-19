@@ -67,7 +67,7 @@
 	float NDF_Beckmann_LUT(float NoH, float roughness)
 	{
 		float2 uv = float2(NoH, roughness);
-		return pow(2.0 * SAMPLE_TEXTURE2D(T_LUT_PHBeckmann, sampler_T_LUT_PHBeckmann, uv), 10);
+		return pow(2.0 * abs(SAMPLE_TEXTURE2D(T_LUT_PHBeckmann, sampler_T_LUT_PHBeckmann, uv).r), 10);
 	}
 
 
@@ -257,6 +257,18 @@
 	float3 Diffuse_Lambert ( float3 DiffuseColor )
     {
         return DiffuseColor;
+    }
+
+	#include "K_ShadingInputs.hlsl"
+	#include "K_ShadingSurface.hlsl"
+
+	float3 CookTorranceBrdf(ShadingSurface surf, ShadingInputs si)
+	{	
+		float D = NDF_GGX(surf.a2, si.NoH);
+		float3 F = Fresnel_Schlick(surf.F0, si.VoH);
+		float V = Vis_Schlick(surf.a2, si.NoV, si.NoL);
+
+	    return D*F*V;
     }
 
 #endif 

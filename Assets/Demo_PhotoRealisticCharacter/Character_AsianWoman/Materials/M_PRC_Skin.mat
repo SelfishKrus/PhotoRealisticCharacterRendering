@@ -25,6 +25,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _BaseColorMap:
+        m_Texture: {fileID: 2800000, guid: aa33dba347967b4418b05fc070aabca1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -61,6 +65,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 9b45a6879e8ffcf4e911109f7f4d0ddf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _T_Rmom:
+        m_Texture: {fileID: 2800000, guid: 9b45a6879e8ffcf4e911109f7f4d0ddf, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _T_Thickness:
         m_Texture: {fileID: 2800000, guid: 77bcb3a292251474bb1d4f69f20e90a4, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -73,32 +81,48 @@ Material:
     m_Floats:
     - _AOScale: 1
     - _Compare: 8
+    - _CurvatureScale: 3
+    - _CutOffThreshold: 0.33
     - _DetailNormalScale: 1
     - _DetailNormalScale_K: 0.5
+    - _DetailNormalTiling: 15
     - _DetailNormal_K: 1
+    - _DetailVisibleDistance: 10
     - _DirectionalSpecularIntensity: 13
-    - _DirectionalSpecularIrradianceBias: 0.725
+    - _DirectionalSpecularIrradianceBias: -0.381
+    - _EnvLodBias: 2
     - _Gloss: 0.645
     - _Glossiness: 0.625
     - _LowNormalLod: 6
+    - _LowNormalSmoothness: 0.76
     - _MinThicknessNormalized: 0
     - _NormalScale: 0.65
     - _NormalScale_K: 0.7
     - _Pass: 2
     - _ReceiveDirectionalShadow: 1
     - _RoughnessScale: 1.25
+    - _S_AO: 1
+    - _S_DetailNormal: 0.35
+    - _S_Metallic: 1
+    - _S_Normal: 0.35
+    - _S_Opacity: 1
+    - _S_Roughness: 0.6
     - _SpecularReflectance: 0.028
     - _StencilMask: 192
     - _StencilWriteMask: 192
+    - _ThicknessScale: 0.1
+    - _Transparency: 0
     - _Wrap: 0.54
     - _WrapR: 0
     - _WrapRGB: 0
     m_Colors:
+    - _BaseColorTint: {r: 1, g: 1, b: 1, a: 1}
     - _CurvatureScaleBias: {r: 1.5, g: 0.15, b: 0, a: 0}
-    - _Test: {r: 0.87, g: 0, b: 0, a: 0}
+    - _Test: {r: 0.5, g: 0, b: 0, a: 0}
+    - _ThicknessScale: {r: 1, g: 0, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: 0, b: 0, a: 0}
     - _TransScaleBiasEnv: {r: 1, g: 0.08, b: 0, a: 0}
-    - _TransmittanceTint: {r: 1, g: 0, b: 0.010526657, a: 1}
+    - _TransmittanceTint: {r: 1, g: 0, b: 0.011765003, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
     - _WrapLighting: {r: 0.27044016, g: 0.27044016, b: 0.27044016, a: 1}
   m_BuildTextureStacks: []

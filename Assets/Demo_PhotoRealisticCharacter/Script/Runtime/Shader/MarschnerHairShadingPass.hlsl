@@ -23,17 +23,9 @@
 
     float4 _T_DetailNormal_ST;
 
-    TEXTURE2D(_T_Normal);
-    TEXTURE2D(_T_Rmo);
     TEXTURE2D(_T_Shift);
 
-    float _WrapLighting;
-    float _RoughnessScale;
-    float _MetallicScale;
-    float _AOScale;
-    float _NormalScale_K;
     float4 _Test;
-    float _CutOffThreshold;
 
     float _Transparency;
 
@@ -51,10 +43,12 @@
     half4 frag (Varyings IN) : SV_Target
     {   
         // Surface
-        ShadingSurface surf = GetShadingSurface(_BaseColorMap, _BaseColor, _Transparency, _T_Rmo, float3(_RoughnessScale, _MetallicScale, _AOScale), _T_Normal, _NormalScale_K, IN.normalWS, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
+        float distanceFromFragToCam = distance(IN.posWS, _WorldSpaceCameraPos);
+
+        ShadingSurface surf = GetShadingSurface(_BaseColorMap, _BaseColorTint, _S_Opacity, _T_Rmom, float3(_S_Roughness, _S_Metallic, _S_AO), _T_Normal, _S_Normal, IN.normalWS, _T_DetailNormal, _S_DetailNormal, _DetailNormalTiling, _DetailVisibleDistance, distanceFromFragToCam, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
         
         float2 posSS = IN.pos.xy / _ScreenParams.xy;
-        float4 ditherMask = Dither(normalize(IN.pos), posSS * _Test.x);
+        float4 ditherMask = Dither(normalize(IN.pos), posSS);
         //return float4(ditherMask.rrr, 1);
 
         #if defined(K_ALPHA_TEST)

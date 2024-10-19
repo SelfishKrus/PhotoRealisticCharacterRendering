@@ -2,21 +2,29 @@ Shader "PRC/Hair_Marschner"
 {
     Properties
     {
-        [Header(Base Map)]
+        [Header(Surface)]
         [Space(10)]
-        [MainTexture] _BaseColorMap ("Texture", 2D) = "white" {}
+        _BaseColorMap ("Texture", 2D) = "white" {}
+        _BaseColor ("Base Color Tint", Color) = (1,1,1,1)
+        _S_Opacity ("Opacity", Range(0, 1)) = 1
+        _CutOffThreshold ("CutOff Threshold", Range(0, 1)) = 0.33
 
-        [MainColor] _BaseColor ("Tint", Color) = (1,1,1,1)
-        _Transparency ("Transparency", Range(0, 10)) = 1
-        _WrapLighting ("Wrap Lighting", Range(0, 5)) = 1
+        [Space(10)]
         _T_Normal ("Normal Map", 2D) = "bump" {}
-        _NormalScale_K ("Normal Scale", Range(0,5)) = 1
-        [Space(20)]
+        _S_Normal ("Normal Scale", Range(0,5)) = 1
+        _LowNormalSmoothness ("Low Normal Smoothness", Range(0,1)) = 0.6
 
-        _T_Rmo ("RMO", 2D) = "white" {} 
-        _RoughnessScale ("Roughness Scale", Range(0, 1.5)) = 1
-        _MetallicScale ("Metallic Scale", Range(0, 1.5)) = 1
-        _AOScale ("AO Scale", Range(0, 1.5)) = 1
+        [Space(10)]
+        _T_Rmom ("RMO", 2D) = "white" {} 
+        _S_Roughness ("Roughness Scale", Range(0, 5)) = 1
+        _S_Metallic ("Metallic Scale", Range(0, 1)) = 1
+        _S_AO ("AO Scale", Range(0, 1.5)) = 1
+
+        [Space(10)]
+        _T_DetailNormal ("Detail Normal Map", 2D) = "bump" {}
+        _S_DetailNormal ("Detail Normal Scale", Range(0,10)) = 1
+        _DetailNormalTiling ("Detail Normal Tiling", Float) = 1
+        _DetailVisibleDistance ("Detail Visible Distance", Range(0.1, 100)) = 5
         [Space(20)]
 
         [Toggle(HAIR_SINGLE_SCATTERING_R)] _HairSingleScatteringR ("Hair Single Scattering R", Float) = 1
@@ -27,13 +35,10 @@ Shader "PRC/Hair_Marschner"
         [Space(20)]
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
 
-
-
-        _CutOffThreshold ("Cut Off Threshold", Range(0, 1)) = 0.5
         // Alpha Clip Shadow
         [HideInInspector] _AlphaRemapMin("AlphaRemapMin", Float) = 0.0
         [HideInInspector] _AlphaRemapMax("AlphaRemapMax", Float) = 1.0
-        [HideInInspector]  _UseShadowThreshold("_UseShadowThreshold", Float) = 1.0
+        [HideInInspector] _UseShadowThreshold("_UseShadowThreshold", Float) = 1.0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         _AlphaCutoffShadow("_AlphaCutoffShadow", Range(0.0, 1.0)) = 0.5
 
@@ -203,7 +208,6 @@ Shader "PRC/Hair_Marschner"
             #pragma shader_feature_local _ALPHATEST_ON
 
             #define _ALPHATEST_ON
-            #define _UseShadowThreshold 1
 
 
             #define SHADERPASS SHADERPASS_SHADOWS
@@ -212,8 +216,6 @@ Shader "PRC/Hair_Marschner"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
-
-            #define GENERIC_ALPHA_TEST(alphaValue, alphaCutoff) GENERIC_ALPHA_TEST(0.5, alphaCutoff)
 
             #pragma vertex Vert
             #pragma fragment Frag

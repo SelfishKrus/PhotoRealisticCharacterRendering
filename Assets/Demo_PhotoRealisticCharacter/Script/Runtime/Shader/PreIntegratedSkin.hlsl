@@ -5,16 +5,6 @@
 
 #define F0_SKIN 0.028
 
-// Reoriented Normal Mapping Blending
-// input normals' range - [0, 1]
-float3 BlendNormal_RNM(float3 n1_map, float3 n2_map)
-{
-    float3 t = n1_map.xyz*float3( 2,  2, 2) + float3(-1, -1,  0);
-    float3 u = n2_map.xyz*float3(-2, -2, 2) + float3( 1,  1, -1);
-    float3 r = t*dot(t, u) - u*t.z;
-    return normalize(r);
-}
-
 float Vis_SchlickSmith_NvFaceWorks(float specPower, float NdotL, float NdotV)
 {
 	float schlickSmithFactor = rsqrt(specPower * (3.14159265359 * 0.25) + (3.14159265359 * 0.5));
@@ -116,11 +106,10 @@ float3 EvaluateTransmittanceDirectLight(
         float3 lightDir,
         float3 lightColor,
         float thickness,
-        float2 thicknessScaleBias,
         Texture2D texTransLUT,
         SamplerState ss)
 {
-    float3 T = texTransLUT.Sample(ss, float2(thickness * thicknessScaleBias.x + thicknessScaleBias.y, 0)).rgb;
+    float3 T = texTransLUT.Sample(ss, float2(thickness, 0)).rgb;
     float E = max(0.3 + dot(-normal, lightDir), 0.0);
     return T * lightColor * transColor * E;
 }
@@ -128,12 +117,11 @@ float3 EvaluateTransmittanceDirectLight(
 float3 EvaluateTransmittanceEnv(
         float3 transColor, 
         float thickness,
-        float2 thicknessScaleBias,
         float3 irradiance_SH,
         Texture2D texTransLUT,
         SamplerState ss)
 {
-    float3 T = texTransLUT.Sample(ss, float2(thickness * thicknessScaleBias.x + thicknessScaleBias.y, 0)).rgb;
+    float3 T = texTransLUT.Sample(ss, float2(thickness, 0)).rgb;
     float3 E = irradiance_SH;
     return T * transColor * E;
 }

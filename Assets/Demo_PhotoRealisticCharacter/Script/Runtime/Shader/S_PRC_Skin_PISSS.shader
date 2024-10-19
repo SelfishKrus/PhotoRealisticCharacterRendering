@@ -2,41 +2,51 @@ Shader "PRC/Skin_PISSS"
 {
     Properties
     {   
-        [Header(Base Map)]
+        [Header(Surface)]
         [Space(10)]
-        _T_BaseColor ("Texture", 2D) = "white" {}
-        _T_Normal ("Normal Map", 2D) = "bump" {}
-        _NormalScale_K ("Normal Scale", Range(0,5)) = 1
-        _LowNormalLod ("Low Normal LOD", Range(0,10)) = 5
-        _T_Rmo ("RMO", 2D) = "white" {} 
-        _RoughnessScale ("Roughness Scale", Range(0, 5)) = 1
-        _AOScale ("AO Scale", Range(0, 1.5)) = 1
+        _BaseColorMap ("Texture", 2D) = "white" {}
+        _BaseColorTint ("Tint", Color) = (1,1,1,1)
+        _S_Opacity ("Opacity", Range(0, 1)) = 1
+        _CutOffThreshold ("CutOff Threshold", Range(0, 1)) = 0.33
 
+        [Space(10)]
+        _T_Normal ("Normal Map", 2D) = "bump" {}
+        _S_Normal ("Normal Scale", Range(0,5)) = 1
+        _LowNormalSmoothness ("Low Normal Smoothness", Range(0,1)) = 0.6
+
+        [Space(10)]
+        _T_Rmom ("RMO", 2D) = "white" {} 
+        _S_Roughness ("Roughness Scale", Range(0, 5)) = 1
+        _S_Metallic ("Metallic Scale", Range(0, 1)) = 1
+        _S_AO ("AO Scale", Range(0, 1.5)) = 1
+
+        [Space(10)]
         _T_DetailNormal ("Detail Normal Map", 2D) = "bump" {}
-        _DetailNormalScale_K ("Detail Normal Scale", Range(0,10)) = 1
+        _S_DetailNormal ("Detail Normal Scale", Range(0,10)) = 1
+        _DetailNormalTiling ("Detail Normal Tiling", Float) = 1
+        _DetailVisibleDistance ("Detail Visible Distance", Range(1, 100)) = 5
         [Space(20)]
+
+        [Header(Specular)]
+        _EnvLodBias ("Env LOD Bias", Range(0, 10)) = 1
 
         [Header(Subsurface Scattering)]
         [Space(10)]
         _T_Curvature ("Curvature", 2D) = "gray" {}
-        _CurvatureScaleBias ("Curvature Scale and Bias", Vector) = (1,0,0,0)
+        _CurvatureScale ("Curvature Scale", Float) = 1
         _T_LUT_Diffuse ("Diffuse LUT", 2D) = "white" {}
         [HDR]_WrapLighting ("Wrap", Color) = (1,1,1,1)
-        [Space(20)]
-
-        [Header(Specular)]
-        [Space(10)]
-        _DirectionalSpecularIrradianceBias ("Directional Specular Irradiance Bias", Range(-1, 1)) = 0.725
         [Space(20)]
         
         [Header(Transmittance)]
         [Space(10)]
         _T_Thickness ("Thickness", 2D) = "white" {}
-        _TransScaleBiasEnv ("Transmittance Scale and Bias Env", Vector) = (1,0,0,0)
+        _ThicknessScale ("Thickness Scale", Float) = 1
+        _MinThicknessNormalized ("Min Thickness Normalized", Range(0, 0.01)) = 0.0045
+
         _TransmittanceTint ("Transmittance Tint", Color) = (1,1,1,1)
         _T_LUT_Trans ("Transmittance LUT", 2D) = "white" {}
-        _TransScaleBias ("Transmittance Scale and Bias", Vector) = (1,0,0,0)
-        _MinThicknessNormalized ("Min Thickness Normalized", Range(0, 0.01)) = 0.0045
+
         [Space(20)]
         
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
@@ -252,166 +262,12 @@ Shader "PRC/Skin_PISSS"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowAlgorithms.hlsl"
 
-            #define DIRECTIONAL_SHADOW_HIGH
-            #define LIGHT_FAR_PLANE 30.0
-
-            struct Attributes
-            {
-                float4 posOS : POSITION;
-                float3 normalOS : NORMAL;
-                float4 tangentOS : TANGENT;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct Varyings
-            {
-                float2 uv : TEXCOORD0;
-                float3 posWS : TEXCOORD1;
-                float3 normalWS : NORMAL;
-                float4 tangentWS : TANGENT;
-                float4 pos : SV_POSITION;
-            };
-
-            float4 _MainTex_ST;
-            float4 _T_DetailNormal_ST;
-
-            SAMPLER(SamplerState_Linear_Repeat);
-            SAMPLER(SamplerState_Linear_Clamp);
-            TEXTURE2D(_T_BaseColor);
-            TEXTURE2D(_T_Normal);
-            TEXTURE2D(_T_DetailNormal);
-            TEXTURE2D(_T_Rmo);
-            TEXTURE2D(_T_Thickness);
-
-            TEXTURE2D(_T_Curvature);
-
-            TEXTURE2D(_T_LUT_Diffuse);
-            TEXTURE2D(_T_LUT_Trans);
-
-            float _RoughnessScale;
-            float _AOScale;
-            float _NormalScale_K;
-            float _DetailNormalScale_K;
-            float _LowNormalLod;
-            float2 _CurvatureScaleBias;
-            float4 _Test;
-            float3 _TransmittanceTint;
-            float2 _TransScaleBias;
-            float2 _TransScaleBiasEnv;
-            float _MinThicknessNormalized;
-            float3 _WrapLighting;
-            float _DirectionalSpecularIrradianceBias;
-
+            #include "K_ShadingInputs.hlsl"
+            #include "K_ShadingSurface.hlsl"
             #include "PreIntegratedSkin.hlsl"
             #include "HDShadowUtilities.hlsl"
+            #include "SkinShadingPass.hlsl"
 
-            Varyings vert (Attributes IN)
-            {
-                Varyings OUT;
-                OUT.pos = TransformObjectToHClip(IN.posOS.xyz);
-                OUT.posWS = TransformObjectToWorld(IN.posOS.xyz);
-                OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS);
-                OUT.tangentWS = float4(TransformObjectToWorldDir(IN.tangentOS.xyz).xyz, IN.tangentOS.w);
-                OUT.uv = IN.uv;
-                return OUT;
-            }
-
-            half4 frag (Varyings IN) : SV_Target
-            {   
-                // TEX 
-                float3 baseColor = SAMPLE_TEXTURE2D(_T_BaseColor, SamplerState_Linear_Repeat, IN.uv).rgb;
-                float3 transmittanceColor = _TransmittanceTint * baseColor;
-                float4 rmo = SAMPLE_TEXTURE2D(_T_Rmo, SamplerState_Linear_Repeat, IN.uv);
-                float ao = lerp(0, 1, rmo.b * _AOScale);
-                float thickness_env = SAMPLE_TEXTURE2D(_T_Thickness, SamplerState_Linear_Repeat, IN.uv).r;
-
-                // normal 
-                float3 normalTS_high = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, IN.uv, 0));
-                normalTS_high.xy *= _NormalScale_K;
-                normalTS_high.z = sqrt(1 - saturate(dot(normalTS_high.xy, normalTS_high.xy)));
-                // specular normal 
-                #ifdef DETAIL_NORMAL_K
-                    float3 normalTS_detail = UnpackNormal(SAMPLE_TEXTURE2D(_T_DetailNormal, SamplerState_Linear_Repeat, IN.uv * _T_DetailNormal_ST.xx + _T_DetailNormal_ST.zw));
-                    normalTS_detail.xy *= _DetailNormalScale_K * rmo.a;
-                    normalTS_detail.z = sqrt(1 - saturate(dot(normalTS_detail.xy, normalTS_detail.xy)));
-                    float3 normalTS_specular = BlendNormal_RNM(normalTS_high*0.5+0.5, normalTS_detail*0.5+0.5);
-                #else 
-                    float3 normalTS_specular = normalTS_high;
-                #endif
-
-                float3 normalTS_low = UnpackNormal(SAMPLE_TEXTURE2D_LOD(_T_Normal, SamplerState_Linear_Repeat, IN.uv, _LowNormalLod));
-
-
-                float roughness = lerp(0.001, 1.0, rmo.r * _RoughnessScale);
-                float a = roughness * roughness;
-                float curvature = SAMPLE_TEXTURE2D(_T_Curvature, SamplerState_Linear_Repeat, IN.uv).r * _CurvatureScaleBias.x + _CurvatureScaleBias.y;
-
-                // NormalTS to NormalWS
-                float3 bitangentWS = cross(IN.normalWS, IN.tangentWS.xyz) * IN.tangentWS.w;
-                float3x3 m_worldToTangent = float3x3(IN.tangentWS.xyz, bitangentWS.xyz, IN.normalWS.xyz);
-                float3x3 m_tangentToWorld = transpose(m_worldToTangent);
-                float3 normalWS_high = mul(m_tangentToWorld, normalTS_high);
-                float3 normalWS_specular = mul(m_tangentToWorld, normalTS_specular);
-                float3 normalWS_low = mul(m_tangentToWorld, normalTS_low);
-                float3 normalWS_geom = IN.normalWS;
-
-                // PRE
-                DirectionalLightData lightData = _DirectionalLightDatas[0];
-                float3 lightDir = -normalize(lightData.forward);
-                float3 camDir = GetWorldSpaceNormalizeViewDir(IN.posWS);
-
-                float2 posSS = IN.pos.xy / _ScreenParams.xy;
-                HDShadowContext shadowContext = InitShadowContext();
-                #if defined(RECEIVE_DIRECTIONAL_SHADOW)
-                    float shadow = GetDirectionalShadowAttenuation(shadowContext,
-					                    posSS, IN.posWS, normalWS_geom,
-					                    lightData.shadowIndex, lightDir);
-                #else 
-                    float shadow = 1;
-                #endif
-
-                float NoV_high = saturate(dot(normalWS_high, camDir));
-                float NoV_low = saturate(dot(normalWS_low, camDir));
-
-                // Get thickness from cam depth and light depth
-                // but artefacts
-                // use thickness_env instead 
-                // int unusedSplitIndex;
-                // float thicknessNormalized = EvaluateThickness(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, posSS, IN.posWS, normalWS_geom, lightData.shadowIndex, lightDir, unusedSplitIndex);
-                // float thickness = max(thicknessNormalized, _MinThicknessNormalized) * LIGHT_FAR_PLANE;
-
-                // lighting
-                // diffuse DL
-                float3 diffuse = EvaluateSSSDirectLight(normalWS_high, normalWS_low, baseColor, lightDir, lightData.color.rgb, _WrapLighting, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, shadow);
-                // specular DL
-                float3 specular = EvaluateDualLobeDirectionalSpecular(normalWS_specular, lightDir, camDir, roughness*0.25, 0.25, lightData.color, shadow);
-                // trans DL
-                float3 transmittance = EvaluateTransmittanceDirectLight(transmittanceColor, normalWS_low, lightDir, lightData.color, thickness_env, _TransScaleBias.xy, _T_LUT_Trans, SamplerState_Linear_Clamp);
-                
-                // more transmittance at the edge
-                // less transmittance in the center
-                //transmittance *= saturate(pow(1-dot(normalWS_geom, camDir), 2));
-
-                // diffuse env
-                float3 F_env = Fresnel_Schlick_Roughness(0.028, NoV_low, roughness);
-                float3 irradiance_SH = EvaluateLightProbe(normalWS_low);
-                float3 diffuse_env = irradiance_SH * baseColor * (1 - F_env) * ao;
-                // trans env 
-                float3 transmittance_env = EvaluateTransmittanceEnv(transmittanceColor, thickness_env, _TransScaleBiasEnv.xy, irradiance_SH, _T_LUT_Trans, SamplerState_Linear_Clamp);
-                // specular env
-                float NoV_detail = saturate(dot(normalWS_specular, camDir));
-                float3 brdf_specular_env = EnvBRDF(0.028, roughness, NoV_detail);
-                float mipmapLevelLod = PerceptualRoughnessToMipmapLevel(a);
-                float3 reflectDir = reflect(-camDir, normalWS_specular);
-                float3 irradiance_IBL = SampleSkyTexture(reflectDir, mipmapLevelLod, 0).rgb;
-                float3 specular_env = brdf_specular_env * irradiance_IBL * ao;
-
-                float3 lighting_DL = diffuse + specular + transmittance;
-                float3 lighting_env = transmittance_env + specular_env + diffuse_env;
-                
-                float3 col = lighting_DL + lighting_env;
-                return half4(col, 1);
-            }
             ENDHLSL
         }
     }

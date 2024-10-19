@@ -182,7 +182,7 @@ Material:
     - _BUILTIN_QueueControl: 0
     - _BUILTIN_QueueOffset: 0
     - _BlendMode: 1
-    - _Blur: 0.075
+    - _Blur: 0
     - _CoatMask: 0
     - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
@@ -238,7 +238,7 @@ Material:
     - _MetallicRemapMin: 0
     - _MetallicScale: 1
     - _NoiseVal: 0.5
-    - _NormalIntensity: 2
+    - _NormalIntensity: 0.5
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _NormalScale_K: 1
@@ -264,12 +264,12 @@ Material:
     - _RenderQueueType: 4
     - _RequireSplitLighting: 0
     - _RoughnessScale: 1
-    - _Smoothness: 0.9
+    - _Smoothness: 0.973
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
     - _SpecularAAScreenSpaceVariance: 0.1
     - _SpecularAAThreshold: 0.2
-    - _SpecularIntensity: 0.85
+    - _SpecularIntensity: 1
     - _SpecularOcclusionMode: 1
     - _SrcBlend: 1
     - _StencilRef: 0
