@@ -7,29 +7,40 @@
         float3 normalOS : NORMAL;
         float4 tangentOS : TANGENT;
         float2 uv : TEXCOORD0;
+        float2 uv1 : TEXCOORD1;
+        float3 color : COLOR;
     };
 
     struct Varyings
     {
         float2 uv : TEXCOORD0;
-        float3 posWS : TEXCOORD1;
+        float2 uv1 : TEXCOORD1;
+        float3 posWS : TEXCOORD2;
         float3 normalWS : NORMAL;
         float4 tangentWS : TANGENT;
         float4 pos : SV_POSITION;
+        float3 color : COLOR;
     };
 
-    float4 _T_DetailNormal_ST;
-
     TEXTURE2D(_T_Shift);
+    float4 _T_Shift_ST;
+    TEXTURE2D(_T_AO);
 
     float4 _Test;
+
+    float _SpecularFactor;
 
     float _SpecularRShift;
     float _SpecularTRTShift;
     float _SpecularRGloss;
     float _SpecularTRTGloss;
 
-    float _Transparency;
+    float _ShadowLuminance;
+
+    float _ScatterPower;
+    float _LightScale;
+
+
 
     Varyings vert (Attributes IN)
     {
@@ -39,6 +50,8 @@
         OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS.xyz);
         OUT.tangentWS = float4(TransformObjectToWorldDir(IN.tangentOS.rgb), IN.tangentOS.w);
         OUT.uv = IN.uv;
+        OUT.uv1 = IN.uv1;
+        OUT.color = IN.color;
         return OUT;
     }
 
@@ -47,10 +60,15 @@
 
         float distanceFromFragToCam = distance(IN.posWS, _WorldSpaceCameraPos);
         // Surface
-        ShadingSurface surf = GetShadingSurface(_T_BaseColor, _BaseColorTint, _S_Opacity, _T_Rmom, float3(_S_Roughness, _S_Metallic, _S_AO), _T_Normal, _S_Normal, IN.normalWS, _T_DetailNormal, _S_DetailNormal, _DetailNormalTiling, _DetailVisibleDistance, distanceFromFragToCam, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
+        ShadingSurface surf = GetShadingSurface(_BaseColorMap, _BaseColorTint, _S_Opacity, _T_Rmom, float3(_S_Roughness, _S_Metallic, _S_AO), _T_Normal, _S_Normal, IN.normalWS, _T_DetailNormal, _S_DetailNormal, _DetailNormalTiling, _DetailVisibleDistance, distanceFromFragToCam, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
+
+        float2 posSS = IN.pos.xy / _ScreenParams.xy;
+        float4 ditherMask = Dither(normalize(IN.pos), posSS);
+        float dither = _TaaFrameInfo.r;
+        //return float4(ditherMask.rrr, 1);
         
         #if defined(K_ALPHA_TEST)
-            clip(surf.alpha - 0.33);
+            clip(surf.alpha - ditherMask.r * 0.1- _CutOffThreshold);
         #endif
 
         // Shading Variables 
@@ -59,15 +77,42 @@
         ShadingInputs si = GetShadingInputs(surf.normalWS_high, IN.posWS, lightData, _WrapLighting);
 
         // Shading // 
+
+        // hair shadow
+        float w = 0.5;
+        float hairShadow = (abs(dot(si.L, surf.normalWS_high) + w)) / ((1+w) * (1+w));
+        float aperture = hairShadow * lerp(0.5, 1.0, dot(surf.baseColor, _ShadowLuminance));
+        hairShadow = saturate(hairShadow - (1.0 - aperture));
+
+        // ao
+        float ao = SAMPLE_TEXTURE2D(_T_AO, SamplerState_Linear_Repeat, IN.uv1);
+        ao = WrapLighting(ao, _S_AO);
+
+        float shadow = hairShadow * ao;
+
         // diffuse 
-        float3 diffuse = si.NoL_wrap * surf.baseColor;
+        float3 diffuse = si.NoL_wrap * surf.baseColor * lightData.color;
 
         // specular
-        float shift = SAMPLE_TEXTURE2D(_T_Shift, SamplerState_Linear_Repeat, IN.uv).r - 0.5;
-        float3 specular = KajiyaKaySpecular(shift+_SpecularRShift, shift+_SpecularTRTShift, surf.bitangentWS_geom, surf.normalWS_high, si.H, lightData.color, _BaseColorTint, _SpecularRGloss, _SpecularTRTGloss);
+        float shift = SAMPLE_TEXTURE2D(_T_Shift, SamplerState_Linear_Repeat, IN.uv * _T_Shift_ST.x).r - 0.5;
+        float3 specular = KajiyaKaySpecular(shift+_SpecularRShift, shift+_SpecularTRTShift, surf.bitangentWS_geom, surf.normalWS_high, si.H, lightData.color, lerp(lightData.color, surf.baseColor, 0.75), _SpecularRGloss, _SpecularTRTGloss, _SpecularFactor);
 
-        float3 col = diffuse + specular;
+        // backlit scatter 
+        float3 backlitScatter = BacklitScatter(si.NoV, si.NoL, _ScatterPower, si.V, si.L, _LightScale) * surf.baseColor * lightData.color;
+
+        float3 col = shadow * (diffuse + specular) + backlitScatter * ao;
         return half4(col, surf.alpha);
+    }
+
+    half4 frag_primeZ (Varyings IN) : SV_Target
+    {   
+        float distanceFromFragToCam = distance(IN.posWS, _WorldSpaceCameraPos);
+        ShadingSurface surf = GetShadingSurface(_BaseColorMap, _BaseColorTint, _S_Opacity, _T_Rmom, float3(_S_Roughness, _S_Metallic, _S_AO), _T_Normal, _S_Normal, IN.normalWS, _T_DetailNormal, _S_DetailNormal, _DetailNormalTiling, _DetailVisibleDistance, distanceFromFragToCam, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
+
+        clip(surf.alpha - _CutOffThreshold);
+
+        half3 col = 1;
+        return half4(col, 1);
     }
 
 #endif 

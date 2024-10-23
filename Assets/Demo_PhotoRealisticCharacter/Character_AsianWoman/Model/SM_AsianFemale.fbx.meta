@@ -67,6 +67,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: skin
+    second: {fileID: 2100000, guid: 956267a8e4be8f34cb88bdd0df8be73e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: tearline
     second: {fileID: 2100000, guid: d315e74613ff4a648a940353c10775a3, type: 2}
   materials:

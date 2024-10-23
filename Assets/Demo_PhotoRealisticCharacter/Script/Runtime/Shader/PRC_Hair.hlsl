@@ -24,15 +24,23 @@
         return dirAtten * pow(sinTH, exp);
     }
 
-    float3 KajiyaKaySpecular (float shift1, float shift2, float3 tangent, float3 normal, float3 h, float3 lightColor, float3 baseColor, float gloss1, float gloss2)
+    float3 KajiyaKaySpecular (float shift1, float shift2, float3 tangent, float3 normal, float3 h, float3 specCol_R, float3 specCol_TRT, float gloss1, float gloss2, float lerpFac)
     {
         float3 t1 = ShiftTangent_PRC(tangent, normal, shift1);
         float3 t2 = ShiftTangent_PRC(tangent, normal, shift2);
 
-        float3 specular_R = lightColor * StrandSpecular(t1, h, gloss1);
-        float3 specular_TRT = baseColor * lightColor * StrandSpecular(t2, h, gloss2);
+        float3 specular_R = specCol_R * StrandSpecular(t1, h, gloss1);
+        float3 specular_TRT = specCol_TRT * StrandSpecular(t2, h, gloss2);
 
-        return specular_R + specular_TRT;
+        return lerp(specular_R, specular_TRT, lerpFac);
+    }
+
+    float3 BacklitScatter(float cosThetaV, float cosThetaL, float scatterPower, float3 V, float3 L, float lightScale)
+    {   
+        float scatterFresnel = pow(cosThetaV, scatterPower);
+        float scatterLight = pow(saturate(dot(V, -L)), scatterPower) * (1-cosThetaV) * (1.0 - cosThetaL);
+        float transAmount = scatterFresnel + lightScale * scatterLight;
+        return transAmount;
     }
 
     // ----------------------------------------------------
