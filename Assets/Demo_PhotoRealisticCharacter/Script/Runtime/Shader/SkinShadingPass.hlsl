@@ -34,6 +34,8 @@
     float3 _TransmittanceTint;
     float _MinThicknessNormalized;
     float _EnvLodBias;
+
+    float3 _WrapLightingRGB;
             
     float4 _Test;
 
@@ -56,6 +58,13 @@
 
         ShadingSurface surf = GetShadingSurface(_BaseColorMap, _BaseColorTint, _S_Opacity, _T_Rmom, float3(_S_Roughness, _S_Metallic, _S_AO), _T_Normal, _S_Normal, IN.normalWS, _T_DetailNormal, _S_DetailNormal, _DetailNormalTiling, _DetailVisibleDistance, distanceFromFragToCam, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
 
+        float2 posSS = IN.pos.xy / _ScreenParams.xy;
+        float4 ditherMask = Dither(normalize(IN.pos), posSS);
+        float dither = _TaaFrameInfo.r;
+
+        clip(surf.alpha - ditherMask.r * 0.15 - _CutOffThreshold);
+        //return float4(ditherMask.rrr, 1);
+
         // Shading Variables
         DirectionalLightData lightData = _DirectionalLightDatas[0];
         ShadingInputs si = GetShadingInputs(surf.normalWS_high, IN.posWS, lightData, _WrapLighting);
@@ -68,7 +77,6 @@
         float curvature = SAMPLE_TEXTURE2D(_T_Curvature, SamplerState_Linear_Repeat, IN.uv).r;
         curvature = WrapLighting(curvature, _CurvatureScale);
 
-        float2 posSS = IN.pos.xy / _ScreenParams.xy;
         HDShadowContext shadowContext = InitShadowContext();
         #if defined(RECEIVE_DIRECTIONAL_SHADOW)
             float shadow = GetDirectionalShadowAttenuation(shadowContext,
@@ -89,9 +97,9 @@
         // LIGHTING // 
         // Directional Light 
         // diffuse
-        float3 diffuse_DL = EvaluateSSSDirectLight(surf.normalWS_high, normalWS_low, surf.baseColor, si.L, lightData.color.rgb, _WrapLighting, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, shadow);
+        float3 diffuse_DL = EvaluateSSSDirectLight(surf.normalWS_high, normalWS_low, surf.baseColor, si.L, lightData.color.rgb, _WrapLightingRGB, curvature, _T_LUT_Diffuse, SamplerState_Linear_Clamp, shadow);
         // specular
-        float3 specular_DL = EvaluateDualLobeDirectionalSpecular(surf.normalWS_detail, si.L, si.V, surf.roughness, _Test.x, lightData.color, shadow);
+        float3 specular_DL = EvaluateDualLobeDirectionalSpecular(surf.normalWS_detail, si.L, si.V, surf.roughness, 0.5, lightData.color, shadow);
         // transmittance 
         float3 transmittance_DL = EvaluateTransmittanceDirectLight(transmittanceColor, normalWS_low, si.L, lightData.color.rgb, thickness, _T_LUT_Trans, SamplerState_Linear_Clamp);
 

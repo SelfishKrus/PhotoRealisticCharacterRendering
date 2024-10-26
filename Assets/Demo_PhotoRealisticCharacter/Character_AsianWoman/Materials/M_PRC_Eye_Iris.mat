@@ -168,7 +168,7 @@ Material:
     - _AOScale_Iris: 1
     - _AOScale_Outer: 1
     - _BaseColorTint_Outer: 1
-    - _CamOffsetY: 0
+    - _CamOffsetY: -0.05
     - _CausticContrast: 5
     - _CausticIntensity: 2
     - _Compare: 8
@@ -221,7 +221,7 @@ Material:
     - _S_DetailNormal: 1
     - _S_Height: 0.027
     - _S_Metallic: 1
-    - _S_Metallic_Outer: 0.05
+    - _S_Metallic_Outer: 0.02
     - _S_Normal: 1
     - _S_Normal_Outer: 0.3
     - _S_Opacity: 1
@@ -238,7 +238,7 @@ Material:
     - _WrapR: 0
     - _WrapRGB: 0
     m_Colors:
-    - _BaseColorTint: {r: 0.899371, g: 0.80604, b: 0.80604, a: 1}
+    - _BaseColorTint: {r: 1, g: 0.90880495, b: 0.90880495, a: 1}
     - _BaseColorTint_Inner: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorTint_Iris: {r: 0.6999999, g: 0.86916584, b: 1, a: 1}
     - _BaseColorTint_Outer: {r: 1, g: 1, b: 1, a: 1}

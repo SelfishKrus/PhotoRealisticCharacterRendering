@@ -26,7 +26,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseColorMap:
-        m_Texture: {fileID: 2800000, guid: aa33dba347967b4418b05fc070aabca1, type: 3}
+        m_Texture: {fileID: 2800000, guid: b45cfd3a9c15fef439a59beb8ff7ef83, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -82,7 +82,7 @@ Material:
     - _AOScale: 1
     - _Compare: 8
     - _CurvatureScale: 3
-    - _CutOffThreshold: 0.33
+    - _CutOffThreshold: 0.462
     - _DetailNormalScale: 1
     - _DetailNormalScale_K: 0.5
     - _DetailNormalTiling: 15
@@ -104,7 +104,7 @@ Material:
     - _S_AO: 1
     - _S_DetailNormal: 0.35
     - _S_Metallic: 1
-    - _S_Normal: 0.35
+    - _S_Normal: 0.5
     - _S_Opacity: 1
     - _S_Roughness: 0.6
     - _SpecularReflectance: 0.028
@@ -118,12 +118,13 @@ Material:
     m_Colors:
     - _BaseColorTint: {r: 1, g: 1, b: 1, a: 1}
     - _CurvatureScaleBias: {r: 1.5, g: 0.15, b: 0, a: 0}
-    - _Test: {r: 0.5, g: 0, b: 0, a: 0}
+    - _Test: {r: 0.87, g: 0, b: 0, a: 0}
     - _ThicknessScale: {r: 1, g: 0, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: 0, b: 0, a: 0}
     - _TransScaleBiasEnv: {r: 1, g: 0.08, b: 0, a: 0}
-    - _TransmittanceTint: {r: 1, g: 0, b: 0.011765003, a: 1}
+    - _TransmittanceTint: {r: 0.7610062, g: 0, b: 0.0029842923, a: 1}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
     - _WrapLighting: {r: 0.27044016, g: 0.27044016, b: 0.27044016, a: 1}
+    - _WrapLightingRGB: {r: 0.57232696, g: 0.2865491, b: 0.26456618, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -34,13 +34,13 @@
     float _SpecularTRTShift;
     float _SpecularRGloss;
     float _SpecularTRTGloss;
+    float4 _SpecularR_Tint;
+    float4 _SpecularTRT_Tint;
 
     float _ShadowLuminance;
 
     float _ScatterPower;
     float _LightScale;
-
-
 
     Varyings vert (Attributes IN)
     {
@@ -55,12 +55,12 @@
         return OUT;
     }
 
-    half4 frag (Varyings IN) : SV_Target
+    half4 frag (Varyings IN, float face:VFACE) : SV_Target
     {   
 
         float distanceFromFragToCam = distance(IN.posWS, _WorldSpaceCameraPos);
         // Surface
-        ShadingSurface surf = GetShadingSurface(_BaseColorMap, _BaseColorTint, _S_Opacity, _T_Rmom, float3(_S_Roughness, _S_Metallic, _S_AO), _T_Normal, _S_Normal, IN.normalWS, _T_DetailNormal, _S_DetailNormal, _DetailNormalTiling, _DetailVisibleDistance, distanceFromFragToCam, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
+        ShadingSurface surf = GetShadingSurface(_BaseColorMap, _BaseColor, _S_Opacity, _T_Rmom, float3(_S_Roughness, _S_Metallic, _S_AO), _T_Normal, _S_Normal, IN.normalWS, _T_DetailNormal, _S_DetailNormal, _DetailNormalTiling, _DetailVisibleDistance, distanceFromFragToCam, IN.tangentWS, SamplerState_Linear_Repeat, IN.uv);
 
         float2 posSS = IN.pos.xy / _ScreenParams.xy;
         float4 ditherMask = Dither(normalize(IN.pos), posSS);
@@ -79,28 +79,40 @@
         // Shading // 
 
         // hair shadow
-        float w = 0.5;
-        float hairShadow = (abs(dot(si.L, surf.normalWS_high) + w)) / ((1+w) * (1+w));
-        float aperture = hairShadow * lerp(0.5, 1.0, dot(surf.baseColor, _ShadowLuminance));
-        hairShadow = saturate(hairShadow - (1.0 - aperture));
+        //float hairShadow = HairShadow(0.5, si.L, surf.normalWS_high, surf.baseColor, _ShadowLuminance);
 
         // ao
-        float ao = SAMPLE_TEXTURE2D(_T_AO, SamplerState_Linear_Repeat, IN.uv1);
+        //float ao = SAMPLE_TEXTURE2D(_T_AO, SamplerState_Linear_Repeat, IN.uv1);
+        float ao = SAMPLE_TEXTURE2D(_T_Shift, SamplerState_Linear_Repeat, IN.uv);
         ao = WrapLighting(ao, _S_AO);
 
-        float shadow = hairShadow * ao;
+        float shadow = ao;
 
         // diffuse 
         float3 diffuse = si.NoL_wrap * surf.baseColor * lightData.color;
 
         // specular
         float shift = SAMPLE_TEXTURE2D(_T_Shift, SamplerState_Linear_Repeat, IN.uv * _T_Shift_ST.x).r - 0.5;
-        float3 specular = KajiyaKaySpecular(shift+_SpecularRShift, shift+_SpecularTRTShift, surf.bitangentWS_geom, surf.normalWS_high, si.H, lightData.color, lerp(lightData.color, surf.baseColor, 0.75), _SpecularRGloss, _SpecularTRTGloss, _SpecularFactor);
+        float3 specular = KajiyaKaySpecular(shift+_SpecularRShift, shift+_SpecularTRTShift, surf.bitangentWS_geom, surf.normalWS_high, si.H, _SpecularR_Tint, _SpecularTRT_Tint, _SpecularRGloss, _SpecularTRTGloss, _SpecularFactor) * si.NoL * shadow;
 
         // backlit scatter 
-        float3 backlitScatter = BacklitScatter(si.NoV, si.NoL, _ScatterPower, si.V, si.L, _LightScale) * surf.baseColor * lightData.color;
+        float fre = Fresnel_Schlick(0, si.NoV);
+        float lightIn = saturate(dot(-surf.normalWS_geom*face, si.L));
+        float3 backlitScatter = fre * lightIn * lerp(surf.baseColor, lightData.color, 0.1) * shadow;
+        //backlitScatter = lightIn;
 
-        float3 col = shadow * (diffuse + specular) + backlitScatter * ao;
+        float3 directionalLighting = specular + diffuse + backlitScatter;
+
+        // env specular 
+        float3 irradiance_SH = EvaluateLightProbe(surf.normalWS_geom);
+        float3 reflectDir = reflect(-si.V, surf.normalWS_high);
+        float3 irradiance_IBL = SampleSkyTexture(reflectDir, surf.envMipLevel, 0).rgb;
+        
+        float3 diffuse_env = irradiance_SH * surf.baseColor * (ao);
+
+        float3 envLighting = diffuse_env;
+
+        float3 col = directionalLighting + envLighting;
         return half4(col, surf.alpha);
     }
 

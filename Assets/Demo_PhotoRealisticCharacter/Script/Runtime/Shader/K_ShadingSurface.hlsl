@@ -49,6 +49,8 @@
     {
         ShadingSurface surf;
 
+        uv = uv * _BaseColorMap_ST.x + _BaseColorMap_ST.z;
+
         float4 baseColor = SAMPLE_TEXTURE2D(baseColorMap, ss, uv);
         surf.baseColor = baseColor.rgb * tint;
         surf.alpha = baseColor.a * alphaScale;

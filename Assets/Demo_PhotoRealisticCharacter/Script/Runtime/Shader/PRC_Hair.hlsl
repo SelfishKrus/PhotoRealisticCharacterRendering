@@ -37,10 +37,19 @@
 
     float3 BacklitScatter(float cosThetaV, float cosThetaL, float scatterPower, float3 V, float3 L, float lightScale)
     {   
-        float scatterFresnel = pow(cosThetaV, scatterPower);
+        float scatterFresnel = pow(1-cosThetaV, scatterPower);
         float scatterLight = pow(saturate(dot(V, -L)), scatterPower) * (1-cosThetaV) * (1.0 - cosThetaL);
         float transAmount = scatterFresnel + lightScale * scatterLight;
         return transAmount;
+    }
+
+    float HairShadow(float wrap, float3 L, float3 N, float3 baseColor, float shadowLuminance)
+    {   
+        float hairShadow = (abs(dot(L, N) + wrap)) / ((1+wrap) * (1+wrap));
+        float aperture = hairShadow  * lerp(0.5, 1.0, dot(baseColor, shadowLuminance));
+        hairShadow = saturate(hairShadow - (1.0 - aperture));
+
+        return hairShadow;
     }
 
     // ----------------------------------------------------

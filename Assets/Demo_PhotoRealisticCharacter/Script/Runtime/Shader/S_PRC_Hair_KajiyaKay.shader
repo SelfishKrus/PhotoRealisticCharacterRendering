@@ -5,8 +5,8 @@ Shader "PRC/Hair_KajiyaKay"
         [Header(Surface)]
         [Space(10)]
         _BaseColorMap ("Texture", 2D) = "white" {}
-        _BaseColorTint ("Tint", Color) = (1,1,1,1)
-        _S_Opacity ("Opacity", Range(0, 1)) = 1
+        _BaseColor ("Tint", Color) = (1,1,1,1)
+        _S_Opacity ("Opacity", Range(0, 3)) = 1
         _CutOffThreshold ("CutOff Threshold", Range(0, 1)) = 0.33
         _WrapLighting ("Wrap Lighting", Range(0, 5)) = 0.5
 
@@ -33,6 +33,8 @@ Shader "PRC/Hair_KajiyaKay"
         _T_Shift ("Shift Map", 2D) = "white" {}
         _SpecularRShift ("Specular R Shift", Range(-5, 5)) = 0
         _SpecularTRTShift ("Specular TRT Shift", Range(-5, 5)) = 0
+        _SpecularR_Tint ("Specular R Tint", Color) = (1,1,1,1)
+        _SpecularTRT_Tint ("Specular TRT Tint", Color) = (1,1,1,1)
         [Space(20)]
 
         _SpecularRGloss ("Specular R Gloss", Range(0, 200)) = 50
@@ -53,6 +55,12 @@ Shader "PRC/Hair_KajiyaKay"
 
 
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
+        // Alpha Clip Shadow
+        [HideInInspector] _AlphaRemapMin("AlphaRemapMin", Float) = 0.0
+        [HideInInspector] _AlphaRemapMax("AlphaRemapMax", Float) = 1.0
+        [HideInInspector] _UseShadowThreshold("_UseShadowThreshold", Float) = 1.0
+        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
+        _AlphaCutoffShadow("_AlphaCutoffShadow", Range(0.0, 1.0)) = 0.1
         [Space(20)]
 
         _Test ("Test", Vector) = (1,1,1,1)
@@ -216,6 +224,8 @@ Shader "PRC/Hair_KajiyaKay"
 
             #pragma shader_feature_local _ALPHATEST_ON
 
+            #define _ALPHATEST_ON
+
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
@@ -324,10 +334,11 @@ Shader "PRC/Hair_KajiyaKay"
             }
 
             Cull Off
-            //ZWrite Off
-            ZWrite On
+            ZWrite Off
+            //ZWrite On
             //ZTest Equal
             ZTest LEqual
+            Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -348,7 +359,7 @@ Shader "PRC/Hair_KajiyaKay"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
             #define DIRECTIONAL_SHADOW_HIGH
-            #define K_ALPHA_TEST
+            //#define K_ALPHA_TEST
 
             #include "K_Utilities.hlsl"
             #include "K_ShadingInputs.hlsl"

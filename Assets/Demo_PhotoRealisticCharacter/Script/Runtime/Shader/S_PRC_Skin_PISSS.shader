@@ -35,7 +35,7 @@ Shader "PRC/Skin_PISSS"
         _T_Curvature ("Curvature", 2D) = "gray" {}
         _CurvatureScale ("Curvature Scale", Float) = 1
         _T_LUT_Diffuse ("Diffuse LUT", 2D) = "white" {}
-        [HDR]_WrapLighting ("Wrap", Color) = (1,1,1,1)
+        _WrapLightingRGB ("Wrap", Color) = (1,1,1,1)
         [Space(20)]
         
         [Header(Transmittance)]

@@ -8,25 +8,25 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_PRC_Tearline
-  m_Shader: {fileID: -6465566751694194690, guid: 41bb7575f32fb9248b452da1fafe7f5f, type: 3}
+  m_Shader: {fileID: 4800000, guid: df969620fe1d40040a7d37a7186dfad8, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - DETAIL_NORMAL_K
   - _DISABLE_DECALS
   - _DISABLE_SSR
   - _DISABLE_SSR_TRANSPARENT
   - _ENABLE_FOG_ON_TRANSPARENT
-  - _SURFACE_TYPE_TRANSPARENT
-  m_InvalidKeywords:
-  - DETAIL_NORMAL_K
+  - _NORMALMAP
   - _NORMALMAP_TANGENT_SPACE
+  - _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3001
+  m_CustomRenderQueue: -1
   stringTagMap:
     MotionVector: User
-    RenderType: Transparent
   disabledShaderPasses:
   - MOTIONVECTORS
   - TransparentDepthPostpass
@@ -50,7 +50,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 3a774e3f3507d4d47a86b57464e384c0, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMap:
@@ -86,7 +86,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 3a774e3f3507d4d47a86b57464e384c0, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
@@ -122,10 +122,14 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_Normal:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 2868740a63e609045b6881aeaf3fe643, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _T_Rmo:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _T_Rmom:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -169,7 +173,7 @@ Material:
     - _ATDistance: 1
     - _AddPrecomputedVelocity: 0
     - _AlbedoAffectEmissive: 0
-    - _AlphaCutoff: 0.5
+    - _AlphaCutoff: 0
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
     - _AlphaCutoffPrepass: 0.5
@@ -182,18 +186,21 @@ Material:
     - _BUILTIN_QueueControl: 0
     - _BUILTIN_QueueOffset: 0
     - _BlendMode: 1
-    - _Blur: 0
+    - _Blur: 0.057
     - _CoatMask: 0
     - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
     - _CullModeForward: 2
-    - _Cutoff: 0.5
+    - _CutOffThreshold: 0
+    - _Cutoff: 0
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
     - _DetailNormalScale_K: 1
+    - _DetailNormalTiling: 1
     - _DetailNormal_K: 1
     - _DetailSmoothnessScale: 1
+    - _DetailVisibleDistance: 5
     - _DiffusionProfile: 0
     - _DiffusionProfileHash: 0
     - _DisplacementLockObjectScale: 1
@@ -231,14 +238,15 @@ Material:
     - _IridescenceThickness: 1
     - _LOD: 0
     - _LinkDetailsWithBase: 1
+    - _LowNormalSmoothness: 0.6
     - _MaterialID: 1
     - _MaterialTypeMask: 2
-    - _Metallic: 1
+    - _Metallic: 0
     - _MetallicRemapMax: 1
     - _MetallicRemapMin: 0
     - _MetallicScale: 1
     - _NoiseVal: 0.5
-    - _NormalIntensity: 0.5
+    - _NormalIntensity: 0.65
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _NormalScale_K: 1
@@ -264,7 +272,12 @@ Material:
     - _RenderQueueType: 4
     - _RequireSplitLighting: 0
     - _RoughnessScale: 1
-    - _Smoothness: 0.973
+    - _S_DetailNormal: 1
+    - _S_Metallic: 0
+    - _S_Normal: 0.15
+    - _S_Opacity: 1
+    - _S_Roughness: 0.05
+    - _Smoothness: 0.955
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
     - _SpecularAAScreenSpaceVariance: 0.1
@@ -309,8 +322,8 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 0.17610055, g: 0.17610055, b: 0.17610055, a: 0}
-    - _Color: {r: 0.17610052, g: 0.17610052, b: 0.17610052, a: 0}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0, g: 0, b: 0, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}

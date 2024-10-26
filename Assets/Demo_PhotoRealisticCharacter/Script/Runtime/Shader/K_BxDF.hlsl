@@ -271,4 +271,13 @@
 	    return D*F*V;
     }
 
+	float3 BlinnPhongBrdf(ShadingSurface surf, ShadingInputs si)
+	{	
+		float D = NDF_Blinn(surf.a, si.NoH);
+		float3 F = Fresnel_Schlick(surf.F0, si.VoH);
+		float V = Vis_Schlick(surf.a2, si.NoV, si.NoL);
+
+	    return D*F*V;
+    }
+
 #endif 

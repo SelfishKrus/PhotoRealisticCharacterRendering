@@ -24,10 +24,13 @@
     float4 _T_DetailNormal_ST;
 
     TEXTURE2D(_T_Shift);
+    float4 _T_Shift_ST;
 
     float4 _Test;
 
     float _Transparency;
+
+
 
     Varyings vert (Attributes IN)
     {
@@ -70,7 +73,10 @@
             float shadow = 1;
         #endif
 
-        // Shading // 
+        // Shift Noise //
+        float shiftNoise = SAMPLE_TEXTURE2D(_T_Shift, SamplerState_Linear_Clamp, IN.uv * _T_Shift_ST.r).r;
+
+        // Marschner Shading // 
         const float VoL = dot(si.V,si.L);                                                      
         const float SinThetaL = clamp(dot(surf.bitangentWS_geom,si.L), -1.f, 1.f);
 	    const float SinThetaV = clamp(dot(surf.bitangentWS_geom,si.V), -1.f, 1.f);
@@ -158,6 +164,8 @@
         #endif
 
         float3 col = S + MS;
+        col *= shiftNoise;
+
         return half4(col, surf.alpha);
     }
 

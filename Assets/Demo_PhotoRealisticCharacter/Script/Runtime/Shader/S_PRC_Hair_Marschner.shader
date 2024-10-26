@@ -27,6 +27,12 @@ Shader "PRC/Hair_Marschner"
         _DetailVisibleDistance ("Detail Visible Distance", Range(0.1, 100)) = 5
         [Space(20)]
 
+        [Header(Specular)]
+        [Space(10)]
+        _T_Shift ("Shift Noise", 2D) = "white" {}
+
+        [Space(20)]
+
         [Toggle(HAIR_SINGLE_SCATTERING_R)] _HairSingleScatteringR ("Hair Single Scattering R", Float) = 1
         [Toggle(HAIR_SINGLE_SCATTERING_TT)] _HairSingleScatteringTT ("Hair Single Scattering TT", Float) = 1
         [Toggle(HAIR_SINGLE_SCATTERING_TRT)] _HairSingleScatteringTRT ("Hair Single Scattering TRT", Float) = 1

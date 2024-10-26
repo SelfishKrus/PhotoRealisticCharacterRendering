@@ -379,8 +379,12 @@ Shader "PRC/Eyes"
                 float3 diffuse_DL_inner = irradiance_DL_inner * surf_inner.baseColor;
 
                 // Directional Light - Caustic
-                float3 irisNormalWS = IN.normalWS * float3(1,-1,1);
-                float3 caustic_DL_inner = lightData.color * shadow * surf_inner.baseColor * ComputeCaustic(irisNormalWS, si_inner.L, _CausticIntensity, _CausticContrast) * mask;
+                #ifdef IRIS_CAUSTIC
+                    float3 irisNormalWS = IN.normalWS * float3(1,-1,1);
+                    float3 caustic_DL_inner = lightData.color * shadow * surf_inner.baseColor * ComputeCaustic(irisNormalWS, si_inner.L, _CausticIntensity, _CausticContrast) * mask;
+                #else
+                    float3 caustic_DL_inner = 0;
+                #endif
 
                 // Env Light - Diffuse
                 float3 irradianceSH = EvaluateLightProbe(IN.normalWS);

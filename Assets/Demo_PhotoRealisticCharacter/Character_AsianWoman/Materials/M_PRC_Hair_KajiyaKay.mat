@@ -89,6 +89,9 @@ Material:
     m_Ints: []
     m_Floats:
     - _AOScale: 1
+    - _AlphaCutoffShadow: 0.127
+    - _AlphaRemapMax: 1
+    - _AlphaRemapMin: 0
     - _Compare: 8
     - _CutOffThreshold: 0.01
     - _DetailNormalScale: 1
@@ -101,7 +104,7 @@ Material:
     - _Gloss: 0.645
     - _Glossiness: 0.625
     - _HairSelfShadow: 1
-    - _LightScale: 1
+    - _LightScale: 3
     - _LowNormalLod: 6
     - _LowNormalSmoothness: 0.6
     - _MetallicScale: 1.032
@@ -112,35 +115,40 @@ Material:
     - _PrimarayShift: -0.554
     - _ReceiveDirectionalShadow: 1
     - _RoughnessScale: 1
-    - _S_AO: 1.5
+    - _S_AO: 0.525
     - _S_DetailNormal: 1
     - _S_Metallic: 0
     - _S_Normal: 1
-    - _S_Opacity: 1
-    - _S_Roughness: 1
+    - _S_Opacity: 2
+    - _S_Roughness: 0.5
     - _ScatterPower: 5
     - _SecondaryShift: 0.11
     - _ShadowLuminance: 25
-    - _SpecularFactor: 0.75
-    - _SpecularRGloss: 104.5
-    - _SpecularRShift: 0.25
+    - _SpecularFactor: 0.35
+    - _SpecularRGloss: 105
+    - _SpecularRShift: 0.1
     - _SpecularReflectance: 0.028
-    - _SpecularTRTGloss: 57.6
-    - _SpecularTRTShift: -0.04
+    - _SpecularTRTGloss: 64
+    - _SpecularTRTShift: -0.17
     - _StencilMask: 192
     - _StencilWriteMask: 192
     - _Transparency: 1
+    - _UseShadowThreshold: 1
     - _Wrap: 0.54
-    - _WrapLighting: 1
+    - _WrapLighting: 2.5
     - _WrapR: 0
     - _WrapRGB: 0
     m_Colors:
-    - _BaseColorTint: {r: 0.38364768, g: 0.16853675, b: 0.16045637, a: 1}
+    - _BaseColor: {r: 0.15723258, g: 0.075168915, b: 0.039060898, a: 1}
+    - _BaseColorTint: {r: 0.10062883, g: 0.048333406, b: 0.012341262, a: 1}
     - _CurvatureScaleBias: {r: 1.5, g: 0.15, b: 0, a: 0}
-    - _Test: {r: 0.5, g: 25, b: 0, a: 0}
+    - _SpecularR_Tint: {r: 0.6855345, g: 0.46413273, b: 0.43330947, a: 1}
+    - _SpecularTRT_Tint: {r: 0.6981132, g: 0.35783786, b: 0.35783786, a: 1}
+    - _Test: {r: 0.15, g: 1.2, b: 0, a: 0}
     - _TransScaleBias: {r: 1, g: 0, b: 0, a: 0}
     - _TransScaleBiasEnv: {r: 1, g: 0.08, b: 0, a: 0}
     - _TransmittanceTint: {r: 0.37106913, g: 0, b: 0.0041694036, a: 1}
+    - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _Wrap: {r: 1.4, g: 0.5, b: 0.5, a: 0}
     - _WrapLighting: {r: 0.27044016, g: 0.27044016, b: 0.27044016, a: 1}
   m_BuildTextureStacks: []
