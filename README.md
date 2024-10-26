@@ -1,5 +1,7 @@
 # PhotoRealisticCharacterRendering
+
 A custom shading model of photo-realistic character, written in HLSL.
+
 Character model sources from https://www.artstation.com/artwork/AlJZrz, based on which some modification was made to reproduce high-quality real-time rendering in Unity.
 
 https://github.com/user-attachments/assets/4444ead9-2871-4d14-8a46-0b6bff531f27
