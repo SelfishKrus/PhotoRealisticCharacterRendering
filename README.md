@@ -23,7 +23,7 @@ https://github.com/user-attachments/assets/57d7f6ce-5383-4bb5-a020-ff575a7d1f16
 
 ---
 # About textures:
-some created by substance designer, and some is at shadertoy.com
+some created by substance designer, and some is written at shadertoy.com
 
 be free to check the procedural map and pre-integrated LUT:
 
