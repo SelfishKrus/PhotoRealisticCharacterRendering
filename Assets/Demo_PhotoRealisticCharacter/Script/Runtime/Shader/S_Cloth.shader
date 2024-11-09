@@ -28,6 +28,26 @@ Shader "PRC/Cloth"
         _DetailVisibleDistance ("Detail Visible Distance", Range(1, 100)) = 5
         [Space(20)]
 
+        [Header(Cloth U2)]
+        [Space(10)]
+        _RimScale ("Rim Scale", Range(0, 15)) = 1
+        _RimFalloff ("Rim Falloff", Range(0.1, 30)) = 5
+        _InnerScale ("Inner Scale", Range(0, 15)) = 1
+        _InnerFalloff ("Inner Falloff", Range(0.1, 30)) = 5
+        _LambertScale ("Lambert Scale", Range(0, 15)) = 1
+        [Space(20)]
+
+        [Header(Cloth U4)]
+        [Space(10)]
+        _ClothWrap ("Cloth Wrap Lighting", Range(0,1)) = 0.5
+        _ScatterColor ("Scatter Color", Color) = (1,1,1,1)
+        [Space(20)]
+
+        [Header(Cloth Disney Sheen)]
+        [Space(10)]
+        _SheenScale ("Sheen Scale", Range(0,10)) = 1
+        _SheenTint ("Sheen Tint", Range(0,1)) = 0.5
+        [Space(20)]
         
         [Toggle(RECEIVE_DIRECTIONAL_SHADOW)] _ReceiveDirectionalShadow ("Receive Directional Shadow", Float) = 1
         [Toggle(DETAIL_NORMAL_K)] _DetailNormal_K ("Enable Detail Normal", Float) = 1
@@ -264,6 +284,21 @@ Shader "PRC/Cloth"
                 float4 pos : SV_POSITION;
             };
 
+            // u2 cloth 
+            float _RimScale;
+            float _RimFalloff;
+            float _InnerScale;
+            float _InnerFalloff;
+            float _LambertScale;
+
+            // u4 cloth 
+            float _ClothWrap;
+            float3 _ScatterColor;
+
+            // Disney sheen
+            float _SheenScale;
+            float _SheenTint;
+
             float4 _Test;
 
             Varyings vert (Attributes IN)
@@ -282,14 +317,20 @@ Shader "PRC/Cloth"
                 #include "GetPbrParams.hlsl"
 
                 // directional lighting 
-                float3 diff_DL = surf.baseColor * si.NoL_wrap * lightData.color * shadow;
+                //float NoV_geom = saturate(dot(surf.normalWS_geom, si.V));
+                //float3 diffBrdf_DL = DiffBrdf_U2Cloth(si.NoV, _RimScale, _RimFalloff, _InnerScale, _InnerFalloff, _LambertScale, surf.baseColor);
+                float NoLUnclamped = dot(surf.normalWS_detail, si.L);
+                float3 diffBrdf_DL = DiffBrdf_U4Cloth(NoLUnclamped, _ClothWrap, _ScatterColor, surf.baseColor);
+                float sheen = SheenBrdf_Disney(_SheenScale, _SheenTint, surf.baseColor, si.LoH);
+
+                float3 diff_DL = diffBrdf_DL * si.NoL_wrap * lightData.color * shadow;
                 float3 spec_DL = CookTorranceBrdf(surf, si) * si.NoL * lightData.color * shadow;
                 float3 lighting_DL = diff_DL + spec_DL;
 
                 // env lighting 
                 float3 lighting_env = EvaluateEnvLighting(surf, si);
 
-                float3 col = lighting_DL + lighting_env;
+                float3 col = lighting_DL+sheen;
                 return half4(col, 1);
             }
 

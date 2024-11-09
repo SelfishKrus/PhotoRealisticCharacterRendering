@@ -70,6 +70,34 @@
 		return pow(2.0 * abs(SAMPLE_TEXTURE2D(T_LUT_PHBeckmann, sampler_T_LUT_PHBeckmann, uv).r), 10);
 	}
 
+	// SIGGRAPH 2010 - Uncharted2 Character Lighting And Shading
+	// For cloth diffuse 
+	float3 DiffBrdf_U2Cloth(float NoV, float rimScale, float rimExp, float innerScale, float innerExp, float lambertScale, float3 baseColor)
+	{
+		float rim = rimScale * pow(NoV, rimExp);
+		float inner = innerScale * pow(1-NoV, innerExp);
+		
+		return baseColor * (rim + inner + lambertScale);
+	}
+
+	// SIGGRAPH 2016-The Process of Creating Volumetric-based Materials in Uncharted 4
+	// For cloth diffuse 
+	float3 DiffBrdf_U4Cloth(float NoLUnclamped, float wrap, float3 scatterColor, float3 baseColor)
+	{
+		float diffuse = saturate(NoLUnclamped + wrap) / (1+wrap);
+		float3 scatterLight = saturate(scatterColor + saturate(NoLUnclamped)) * diffuse;
+
+		return baseColor * scatterLight;
+	}
+
+	// SIGGRAPH 2012 - Physically Based Shading at Disney
+	// For cloth sheen
+	float3 SheenBrdf_Disney(float sheenScale, float sheenTint, float3 baseColor, float HoL)
+	{
+		float3 sheenColor = lerp(float3(1,1,1), baseColor, sheenTint);
+		
+		return sheenScale * sheenColor * pow((1-HoL),5);
+	}
 
 	// [Schlick 1994, "An Inexpensive BRDF Model for Physically-Based Rendering"]
 	float3 Fresnel_Schlick( float3 SpecularColor, float VoH)

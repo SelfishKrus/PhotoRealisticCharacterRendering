@@ -8,7 +8,7 @@ float2 posSS = IN.pos.xy / _ScreenParams.xy;
 
 // Shading Variables
 DirectionalLightData lightData = _DirectionalLightDatas[0];
-ShadingInputs si = GetShadingInputs(surf.normalWS_high, IN.posWS, lightData, _WrapLighting);
+ShadingInputs si = GetShadingInputs(surf.normalWS_detail, IN.posWS, lightData, _WrapLighting);
 HDShadowContext shadowContext = InitShadowContext();
 #if defined(RECEIVE_DIRECTIONAL_SHADOW)
     float shadow = GetDirectionalShadowAttenuation(shadowContext,
